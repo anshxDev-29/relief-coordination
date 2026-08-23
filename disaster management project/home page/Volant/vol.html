@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volunteer & First Responder Registration — Relief Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="vol.css">
+  <style>
+    /* Inline Verification Badge Styles */
+    .verify-row {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-verify {
+      background-color: var(--blue-soft, #dbeafe);
+      color: var(--blue, #2563eb);
+      border: 1px solid #bfdbfe;
+      border-radius: var(--radius, 8px);
+      padding: 0 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .btn-verify:hover {
+      background-color: var(--blue, #2563eb);
+      color: #ffffff;
+    }
+    .verified-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--green, #16a34a);
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+    .error-msg {
+      color: var(--accent, #dc2626);
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    .otp-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .otp-modal.active {
+      display: flex;
+    }
+    .otp-card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 28px;
+      max-width: 360px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      text-align: center;
+      animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes popIn {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .otp-inputs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 18px 0;
+    }
+    .otp-box {
+      width: 42px;
+      height: 48px;
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: 800;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+    }
+    .otp-box:focus {
+      border-color: var(--green, #16a34a);
+      outline: none;
+      box-shadow: 0 0 0 3px #dcfce7;
+    }
+  </style>
+</head>
+<body class="volunteer-page-body">
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="brand">🚨 Relief<span class="dot">Connect</span></div>
+      <div class="nav-links">
+        <a href="../index.html">Home</a>
+        <a href="../../dispatch board/dispatch.html">Dispatch</a>
+        <a href="../../live map/map.html">Live Map</a>
+        <a href="../../camps/camps.html">Camps & Supplies</a>
+        <a href="../../my requests/requests.html">My Requests</a>
+      </div>
+      <div class="nav-actions">
+        <a href="../../request form/request.html" class="btn btn-primary">+ New Request</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="form-page-container">
+    <div class="form-header">
+      <span class="badge-tag">Identity Verified Onboarding</span>
+      <h1>Join Emergency Field Response</h1>
+      <p>Mobile OTP and Aadhaar ID validation are required for certified responder dispatch clearance.</p>
+    </div>
+
+    <div class="form-card">
+      <form id="volunteerForm" onsubmit="handleVolunteerSubmit(event)">
+        
+        <input type="hidden" id="volLat" name="volLat" value="">
+        <input type="hidden" id="volLng" name="volLng" value="">
+
+        <div class="form-grid-2">
+          <div class="field">
+            <label for="volName">Full Legal Name <span class="req">*</span></label>
+            <input type="text" id="volName" placeholder="e.g. Aniket Singh" required>
+          </div>
+
+          <!-- Mobile Verification Field -->
+          <div class="field">
+            <label for="volPhone">Mobile Number (WhatsApp Enabled) <span class="req">*</span></label>
+            <div class="verify-row">
+              <input type="tel" id="volPhone" placeholder="10-digit mobile" maxlength="10" pattern="[0-9]{10}" required>
+              <button type="button" class="btn-verify" id="phoneVerifyBtn" onclick="openOtpModal('volPhone')">Verify OTP</button>
+            </div>
+            <div id="phoneStatus"></div>
+          </div>
+        </div>
+
+        <!-- Aadhaar Number Field with Auto-Formatting & Verhoeff Check -->
+        <div class="field">
+          <label for="volAadhaar">12-Digit Aadhaar Number (UIDAI) <span class="req">*</span></label>
+          <div class="verify-row">
+            <input type="text" id="volAadhaar" placeholder="xxxx xxxx xxxx" maxlength="14" oninput="formatAadhaar(this)" required>
+            <button type="button" class="btn-verify" onclick="validateAadhaarInput('volAadhaar', 'aadhaarStatus')">Validate ID</button>
+          </div>
+          <div id="aadhaarStatus"></div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="field">
+            <label for="volRole">Primary Specialty Role <span class="req">*</span></label>
+            <select id="volRole" required>
+              <option value="" disabled selected>Select primary capability...</option>
+              <option value="medical_doctor">🩺 Doctor / Paramedic / Nurse</option>
+              <option value="search_rescue">🏊 Search & Rescue / Swimmer</option>
+              <option value="driver_logistics">🚚 Heavy Driver / Logistics</option>
+              <option value="camp_management">⛺ Camp & Kitchen Coordinator</option>
+              <option value="general_helper">🤝 Ground Volunteer</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="volAvailability">Availability Status <span class="req">*</span></label>
+            <select id="volAvailability" required>
+              <option value="immediate">⚡ Immediate Deployment (24/7)</option>
+              <option value="day_only">☀️ Daytime Shifts (8 AM - 8 PM)</option>
+              <option value="night_only">🌙 Night Emergency Shifts</option>
+              <option value="weekends">📅 Weekend Relief Operations</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label for="volBaseLocation">Base Location / Zone <span class="req">*</span></label>
+            <span class="gps-status" id="volGpsStatus">✓ Base Location Locked</span>
+          </div>
+          <button type="button" class="btn-gps" onclick="detectVolunteerLocation()">📍 Auto-Detect Base GPS</button>
+          <textarea id="volBaseLocation" rows="2" placeholder="Colony, district or landmark details" required></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit-volunteer" id="submitBtn">
+          🤝 Complete Verified Volunteer Registration
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <!-- OTP Modal -->
+  <div class="otp-modal" id="otpModal">
+    <div class="otp-card">
+      <h3 style="font-family:var(--font-display); font-size:1.3rem; margin-bottom:6px;">Mobile Verification</h3>
+      <p style="font-size:0.85rem; color:var(--ink-soft);">Enter 6-digit OTP sent to <strong id="otpTarget"></strong></p>
+      <div class="otp-inputs">
+        <input type="text" class="otp-box" maxlength="1" oninput="focusNext(this, 0)">
+        <input type="text" class="otp-box" maxlength="1" oninput="focusNext(this, 1)">
+        <input type="text" class="otp-box" maxlength="1" oninput="focusNext(this, 2)">
+        <input type="text" class="otp-box" maxlength="1" oninput="focusNext(this, 3)">
+        <input type="text" class="otp-box" maxlength="1" oninput="focusNext(this, 4)">
+        <input type="text" class="otp-box" maxlength="1" oninput="focusNext(this, 5)">
+      </div>
+      <p style="font-size:0.75rem; color:#64748b; margin-bottom:14px;">Demo Test Code: <strong>1 2 3 4 5 6</strong></p>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn" style="background:#f1f5f9; color:#475569; flex:1;" onclick="closeOtpModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" style="flex:1; background:var(--green);" onclick="confirmOtp()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isPhoneVerified = false;
+    let isAadhaarVerified = false;
+
+    // Aadhaar Input Auto-space Formatter (xxxx xxxx xxxx)
+    function formatAadhaar(input) {
+      let val = input.value.replace(/\D/g, '').substring(0, 12);
+      let formatted = val.match(/.{1,4}/g)?.join(' ') || val;
+      input.value = formatted;
+    }
+
+    // UIDAI Verhoeff Algorithm for Aadhaar Checksum
+    const d = [
+      [0,1,2,3,4,5,6,7,8,9],[1,2,3,4,0,6,7,8,9,5],[2,3,4,0,1,7,8,9,5,6],[3,4,0,1,2,8,9,5,6,7],[4,0,1,2,3,9,5,6,7,8],
+      [5,9,8,7,6,0,4,3,2,1],[6,5,9,8,7,1,0,4,3,2],[7,6,5,9,8,2,1,0,4,3],[8,7,6,5,9,3,2,1,0,4],[9,8,7,6,5,4,3,2,1,0]
+    ];
+    const p = [
+      [0,1,2,3,4,5,6,7,8,9],[1,5,7,6,2,8,3,0,9,4],[5,8,0,3,7,9,6,1,4,2],[8,9,1,6,0,4,3,5,2,7],
+      [9,4,5,3,1,2,6,8,7,0],[4,2,8,6,5,7,3,9,0,1],[2,7,9,3,8,0,6,4,1,5],[7,0,4,6,9,1,3,2,5,8]
+    ];
+
+    function validateVerhoeff(num) {
+      let c = 0;
+      let myArray = num.split('').map(Number).reverse();
+      for (let i = 0; i < myArray.length; i++) {
+        c = d[c][p[i % 8][myArray[i]]];
+      }
+      return c === 0;
+    }
+
+    function validateAadhaarInput(inputId, statusId) {
+      const raw = document.getElementById(inputId).value.replace(/\s+/g, '');
+      const statusDiv = document.getElementById(statusId);
+
+      if (raw.length !== 12 || !/^\d{12}$/.test(raw)) {
+        statusDiv.innerHTML = `<span class="error-msg">⚠️ Enter a full 12-digit Aadhaar number.</span>`;
+        isAadhaarVerified = false;
+        return;
+      }
+
+      // Check against standard algorithm
+      if (validateVerhoeff(raw)) {
+        statusDiv.innerHTML = `<span class="verified-badge">✓ Valid Aadhaar (UIDAI Checksum Verified)</span>`;
+        isAadhaarVerified = true;
+      } else {
+        statusDiv.innerHTML = `<span class="error-msg">❌ Invalid Aadhaar checksum. Check digits.</span>`;
+        isAadhaarVerified = false;
+      }
+    }
+
+    // OTP Modal & Flow
+    let activePhoneTarget = "";
+    function openOtpModal(phoneInputId) {
+      const phone = document.getElementById(phoneInputId).value;
+      if (phone.length !== 10) {
+        alert("Please enter a valid 10-digit mobile number first.");
+        return;
+      }
+      activePhoneTarget = phoneInputId;
+      document.getElementById('otpTarget').innerText = "+91 " + phone;
+      document.getElementById('otpModal').classList.add('active');
+      document.querySelectorAll('.otp-box')[0].focus();
+    }
+
+    function closeOtpModal() {
+      document.getElementById('otpModal').classList.remove('active');
+    }
+
+    function focusNext(input, index) {
+      if (input.value.length === 1 && index < 5) {
+        document.querySelectorAll('.otp-box')[index + 1].focus();
+      }
+    }
+
+    function confirmOtp() {
+      const boxes = document.querySelectorAll('.otp-box');
+      const otp = Array.from(boxes).map(b => b.value).join('');
+      
+      if (otp === "123456" || otp.length === 6) {
+        isPhoneVerified = true;
+        document.getElementById('phoneStatus').innerHTML = `<span class="verified-badge">✓ Mobile OTP Verified</span>`;
+        document.getElementById('phoneVerifyBtn').style.display = 'none';
+        document.getElementById(activePhoneTarget).readOnly = true;
+        closeOtpModal();
+      } else {
+        alert("Incorrect OTP. Enter 123456 for test demo.");
+      }
+    }
+
+    function detectVolunteerLocation() {
+      const locationBox = document.getElementById('volBaseLocation');
+      const statusTag = document.getElementById('volGpsStatus');
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+          document.getElementById('volLat').value = pos.coords.latitude.toFixed(5);
+          document.getElementById('volLng').value = pos.coords.longitude.toFixed(5);
+          locationBox.value = `Base GPS: [${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}]`;
+          statusTag.style.display = "inline";
+        });
+      }
+    }
+
+    function handleVolunteerSubmit(e) {
+      e.preventDefault();
+      if (!isPhoneVerified) {
+        alert("Please verify your Mobile Number via OTP before registration.");
+        return;
+      }
+      if (!isAadhaarVerified) {
+        alert("Please validate your 12-digit Aadhaar Number before submission.");
+        return;
+      }
+      alert("🎉 Volunteer Profile & Identity Verified Successfully!\nAdded to the tactical dispatch roster.");
+      window.location.href = "../../dispatch board/dispatch.html";
+    }
+  </script>
+</body>
+</html>

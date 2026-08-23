@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Active Dispatch Board — Relief Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dispatch.css">
+</head>
+<body class="dispatch-body">
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <div class="brand">🚨 Relief<span class="dot">Connect</span></div>
+    <div class="nav-links">
+      <a href="../home page/index.html">Home</a>
+      <a href="../dispatch board/dispatch.html" class="active">Dispatch</a>
+      <a href="../live map/map.html">Live Map</a>
+      <a href="../camps/camps.html">Camps & Supplies</a>
+      <a href="../my requests/requests.html">My Requests</a>
+    </div>
+    <div class="nav-actions">
+      <a href="../request form/request.html" class="btn btn-primary">+ New Request</a>
+    </div>
+  </div>
+</nav>
+
+<main class="dispatch-container">
+  <div style="margin-bottom: 24px;">
+    <span class="badge-tag">Command Center</span>
+    <h2 style="font-family:var(--font-display); margin: 8px 0 4px; font-size: 1.8rem;">Relief Coordination Centre</h2>
+    <p style="color:var(--ink-soft); margin:0; font-size: 0.95rem;">Live triage and coordinated responder deployments across all operational zones.</p>
+  </div>
+
+  <section class="stats-row">
+    <div class="stat-card border-red">
+      <span class="stat-title">Critical Pending</span>
+      <span class="stat-value red-text" id="statCritical">2</span>
+    </div>
+    <div class="stat-card border-yellow">
+      <span class="stat-title">In Progress / Dispatched</span>
+      <span class="stat-value yellow-text" id="statDispatched">1</span>
+    </div>
+    <div class="stat-card border-green">
+      <span class="stat-title">Resolved Incidents</span>
+      <span class="stat-value green-text" id="statResolved">1</span>
+    </div>
+    <div class="stat-card border-blue">
+      <span class="stat-title">Total Active Incidents</span>
+      <span class="stat-value blue-text" id="statTotal">4</span>
+    </div>
+  </section>
+
+  <section class="controls-bar">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="🔍 Search victim name, phone, or location..." onkeyup="filterRequests()">
+    </div>
+    <div class="filter-group">
+      <select id="priorityFilter" onchange="filterRequests()">
+        <option value="all">All Priorities</option>
+        <option value="critical">Critical Only</option>
+        <option value="high">High Only</option>
+        <option value="medium">Medium Only</option>
+      </select>
+
+      <select id="statusFilter" onchange="filterRequests()">
+        <option value="all">All Statuses</option>
+        <option value="pending">Pending</option>
+        <option value="assigned">Dispatched</option>
+        <option value="resolved">Resolved</option>
+      </select>
+    </div>
+  </section>
+
+  <section class="table-card">
+    <table class="dispatch-table">
+      <thead>
+        <tr>
+          <th>Priority Score</th>
+          <th>Victim Info</th>
+          <th>Emergency Type</th>
+          <th>Location</th>
+          <th>Time</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="requestTableBody">
+        
+        <tr class="request-row" data-priority="critical" data-status="pending" style="animation-delay: 40ms;">
+          <td>
+            <div class="score-pill pill-critical">
+              <span class="score-num">94.8</span>
+              <span class="score-label">CRITICAL</span>
+            </div>
+          </td>
+          <td>
+            <div class="victim-details">
+              <span class="victim-name">Ramesh Verma</span>
+              <span class="victim-phone">📞 9876543210</span>
+            </div>
+          </td>
+          <td><span class="tag">Trapped / Water level 4ft</span></td>
+          <td>📍 Sector 4, Block C, Meerut</td>
+          <td>10 mins ago</td>
+          <td><span class="status-badge status-pending">Pending</span></td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-action btn-dispatch" onclick="assignTeam(this)">🚨 Dispatch</button>
+              <button class="btn-action btn-call" onclick="alert('Calling Ramesh Verma (+91 9876543210)...')">📞 Call</button>
+            </div>
+          </td>
+        </tr>
+
+        <tr class="request-row" data-priority="high" data-status="assigned" style="animation-delay: 80ms;">
+          <td>
+            <div class="score-pill pill-high">
+              <span class="score-num">78.5</span>
+              <span class="score-label">HIGH</span>
+            </div>
+          </td>
+          <td>
+            <div class="victim-details">
+              <span class="victim-name">Priya Sharma</span>
+              <span class="victim-phone">📞 9812345678</span>
+            </div>
+          </td>
+          <td><span class="tag">Medical / Infant Care</span></td>
+          <td>📍 L-block, Shastri Nagar, Meerut</td>
+          <td>22 mins ago</td>
+          <td><span class="status-badge status-dispatched">Team En Route</span></td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-action btn-resolve" onclick="markResolved(this)">✅ Resolve</button>
+              <button class="btn-action btn-call" onclick="alert('Calling Priya Sharma (+91 9812345678)...')">📞 Call</button>
+            </div>
+          </td>
+        </tr>
+
+        <tr class="request-row" data-priority="medium" data-status="pending" style="animation-delay: 120ms;">
+          <td>
+            <div class="score-pill pill-medium">
+              <span class="score-num">52.0</span>
+              <span class="score-label">MEDIUM</span>
+            </div>
+          </td>
+          <td>
+            <div class="victim-details">
+              <span class="victim-name">Amit Kumar</span>
+              <span class="victim-phone">📞 9711223344</span>
+            </div>
+          </td>
+          <td><span class="tag">Food & Clean Water</span></td>
+          <td>📍 NH-58 Bypass Shelter</td>
+          <td>45 mins ago</td>
+          <td><span class="status-badge status-pending">Pending</span></td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-action btn-dispatch" onclick="assignTeam(this)">🚨 Dispatch</button>
+              <button class="btn-action btn-call" onclick="alert('Calling Amit Kumar (+91 9711223344)...')">📞 Call</button>
+            </div>
+          </td>
+        </tr>
+
+        <tr class="request-row" data-priority="critical" data-status="resolved" style="animation-delay: 160ms;">
+          <td>
+            <div class="score-pill pill-critical">
+              <span class="score-num">88.0</span>
+              <span class="score-label">CRITICAL</span>
+            </div>
+          </td>
+          <td>
+            <div class="victim-details">
+              <span class="victim-name">Sunita Devi</span>
+              <span class="victim-phone">📞 9654321876</span>
+            </div>
+          </td>
+          <td><span class="tag">Evacuation / Elderly</span></td>
+          <td>📍 Sector 2 Shelter Camp</td>
+          <td>1 hr ago</td>
+          <td><span class="status-badge status-resolved">Resolved</span></td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-action btn-disabled" disabled>Completed</button>
+            </div>
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<footer>Relief Connect — Unified Emergency Operations & Tactical Dispatch</footer>
+
+<script>
+  function updateStats() {
+    const rows = document.querySelectorAll('.request-row');
+    let crit = 0, dispatched = 0, resolved = 0, total = 0;
+
+    rows.forEach(r => {
+      total++;
+      const status = r.getAttribute('data-status');
+      const priority = r.getAttribute('data-priority');
+      if (priority === 'critical' && status !== 'resolved') crit++;
+      if (status === 'assigned') dispatched++;
+      if (status === 'resolved') resolved++;
+    });
+
+    document.getElementById('statCritical').textContent = crit;
+    document.getElementById('statDispatched').textContent = dispatched;
+    document.getElementById('statResolved').textContent = resolved;
+    document.getElementById('statTotal').textContent = total;
+  }
+
+  function filterRequests() {
+    const searchVal = document.getElementById('searchInput').value.toLowerCase();
+    const priorityVal = document.getElementById('priorityFilter').value;
+    const statusVal = document.getElementById('statusFilter').value;
+    const rows = document.querySelectorAll('.request-row');
+
+    rows.forEach(row => {
+      const text = row.innerText.toLowerCase();
+      const priority = row.getAttribute('data-priority');
+      const status = row.getAttribute('data-status');
+
+      const matchesSearch = text.includes(searchVal);
+      const matchesPriority = (priorityVal === 'all' || priority === priorityVal);
+      const matchesStatus = (statusVal === 'all' || status === statusVal);
+
+      if (matchesSearch && matchesPriority && matchesStatus) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+
+  function assignTeam(button) {
+    const row = button.closest('tr');
+    row.setAttribute('data-status', 'assigned');
+    const badge = row.querySelector('.status-badge');
+    badge.className = 'status-badge status-dispatched';
+    badge.textContent = 'Team En Route';
+    
+    button.outerHTML = '<button class="btn-action btn-resolve" onclick="markResolved(this)">✅ Resolve</button>';
+    updateStats();
+    alert('🚨 Rescue Team Dispatched! Status updated to In Transit.');
+  }
+
+  function markResolved(button) {
+    const row = button.closest('tr');
+    row.setAttribute('data-status', 'resolved');
+    const badge = row.querySelector('.status-badge');
+    badge.className = 'status-badge status-resolved';
+    badge.textContent = 'Resolved';
+    
+    button.outerHTML = '<button class="btn-action btn-disabled" disabled>Completed</button>';
+    updateStats();
+    alert('✅ Request marked as Resolved.');
+  }
+
+  updateStats();
+</script>
+
+</body>
+</html>

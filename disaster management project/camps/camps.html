@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Camps & Logistics — Relief Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="camps.css" />
+<style>
+  /* View Switcher Tabs */
+  .tab-switch {
+    display: inline-flex;
+    background: #e2ebe8;
+    padding: 5px;
+    border-radius: 999px;
+    margin-bottom: 24px;
+    border: 1px solid var(--line);
+  }
+  .tab-btn {
+    border: none;
+    background: transparent;
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .tab-btn.active {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+
+  /* NGO Resource Card */
+  .ngo-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .ngo-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .ngo-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .ngo-loc {
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .verified-badge {
+    background: #e7f7ee;
+    color: var(--green);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+    border: 1px solid #c3edd3;
+  }
+
+  /* 2x2 Supply Metric Grid inside Card */
+  .supply-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .supply-box {
+    background: #f6f8f7;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .supply-box.highlight {
+    border-color: var(--accent);
+    background: #fff6f5;
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .supply-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .supply-val {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .supply-val small {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    margin-top: 8px;
+  }
+  .coord-info {
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <div class="brand">🚨 Relief<span class="dot">Connect</span></div>
+    <div class="nav-links">
+      <a href="../home page/index.html">Home</a>
+      <a href="../dispatch board/dispatch.html">Dispatch</a>
+      <a href="../live map/map.html">Live Map</a>
+      <a href="../camps/camps.html" class="active">Camps & Supplies</a>
+      <a href="../my requests/requests.html">My Requests</a>
+    </div>
+    <div class="nav-actions">
+      <a href="../request form/request.html" class="btn btn-primary">+ New Request</a>
+    </div>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="container">
+    <span class="badge-tag">Logistics & Infrastructure</span>
+    <h2 style="font-family:var(--font-display);margin:10px 0 18px;">Relief Availibility Dashboard</h2>
+
+    <!-- View Switcher -->
+    <div class="tab-switch">
+      <button class="tab-btn active" id="btnResources" onclick="switchView('resources')">📦 NGO Resource Inventory</button>
+      <button class="tab-btn" id="btnCamps" onclick="switchView('camps')">⛺ Relief Camp Directory</button>
+    </div>
+
+    <!-- VIEW 1: NGO RESOURCES WITH SMART SEARCH -->
+    <div id="viewResources">
+      <div class="toolbar" style="margin-bottom: 24px;">
+        <input type="text" id="resourceSearch" placeholder="🔍 Search resource (e.g. 'water', 'food', 'blankets') to auto-sort by highest stock..." style="font-size:0.95rem; padding: 12px 18px;" />
+        <select id="ngoFilter" style="padding: 12px 16px;">
+          <option value="">All Operating Sectors</option>
+          <option value="Sector 1">Sector 1 / Bypass</option>
+          <option value="Sector 3">Sector 3 Depot</option>
+          <option value="Shastri Nagar">Shastri Nagar</option>
+          <option value="Civil Hospital">Civil Hospital Base</option>
+        </select>
+      </div>
+
+      <div id="searchNotice" style="margin-bottom:16px; font-size:0.88rem; color:var(--ink-soft); display:none;"></div>
+
+      <div class="grid-2" id="ngoGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- VIEW 2: RELIEF CAMPS DIRECTORY -->
+    <div id="viewCamps" style="display:none;">
+      <div class="grid-2" id="campGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer>Relief Connect — built for faster, more coordinated disaster response.</footer>
+
+<script>
+// Mock Data for Verified NGOs & itemized supplies
+const ngos = [
+  {
+    id: "ngo-1",
+    name: "Red Cross India (Meerut Wing)",
+    location: "Depot 4, Bypass Road",
+    sector: "Sector 1",
+    verified: true,
+    coordinatorPhone: "+91 98765 43210",
+    supplies: {
+      water: { label: "Potable Water", stock: 8500, unit: "Liters", icon: "💧" },
+      food: { label: "Food Packets", stock: 1600, unit: "Pks", icon: "🍲" },
+      firstAid: { label: "First-Aid Kits", stock: 360, unit: "Kits", icon: "🩹" },
+      blankets: { label: "Blankets", stock: 120, unit: "Units", icon: "🛏️" }
+    }
+  },
+  {
+    id: "ngo-2",
+    name: "Goonj Disaster Relief Base",
+    location: "Warehouse 12, Sector 3",
+    sector: "Sector 3",
+    verified: true,
+    coordinatorPhone: "+91 98111 22334",
+    supplies: {
+      water: { label: "Potable Water", stock: 12400, unit: "Liters", icon: "💧" },
+      food: { label: "Food Packets", stock: 4200, unit: "Pks", icon: "🍲" },
+      firstAid: { label: "First-Aid Kits", stock: 180, unit: "Kits", icon: "🩹" },
+      blankets: { label: "Blankets", stock: 950, unit: "Units", icon: "🛏️" }
+    }
+  },
+  {
+    id: "ngo-3",
+    name: "Seva Bharati Emergency Logistics",
+    location: "Community Hub, Shastri Nagar",
+    sector: "Shastri Nagar",
+    verified: true,
+    coordinatorPhone: "+91 97222 33445",
+    supplies: {
+      water: { label: "Potable Water", stock: 4300, unit: "Liters", icon: "💧" },
+      food: { label: "Food Packets", stock: 5100, unit: "Pks", icon: "🍲" },
+      firstAid: { label: "First-Aid Kits", stock: 520, unit: "Kits", icon: "🩹" },
+      blankets: { label: "Blankets", stock: 300, unit: "Units", icon: "🛏️" }
+    }
+  },
+  {
+    id: "ngo-4",
+    name: "Rapid Action Medical Corps",
+    location: "Civil Hospital Logistics Base",
+    sector: "Civil Hospital",
+    verified: true,
+    coordinatorPhone: "+91 94555 66778",
+    supplies: {
+      water: { label: "Potable Water", stock: 2100, unit: "Liters", icon: "💧" },
+      food: { label: "Food Packets", stock: 800, unit: "Pks", icon: "🍲" },
+      firstAid: { label: "First-Aid Kits", stock: 1250, unit: "Kits", icon: "🩹" },
+      blankets: { label: "Blankets", stock: 180, unit: "Units", icon: "🛏️" }
+    }
+  }
+];
+
+// Mock Data for Relief Camps
+const camps = [
+  {
+    name: "Camp Alpha (Main Arena)",
+    address: "Bypass Road, Sector 1",
+    status: "open",
+    occupied: 410,
+    capacity: 500,
+    managedBy: "Red Cross India",
+    tags: ["Medical Desk", "Kitchen Unit", "Clean Water"],
+  },
+  {
+    name: "Camp Beta (Sports Complex)",
+    address: "Sector 2 Sports Grounds",
+    status: "nearlyfull",
+    occupied: 288,
+    capacity: 300,
+    managedBy: "Goonj Relief",
+    tags: ["Medical Desk", "Kitchen Unit"],
+  },
+  {
+    name: "Camp Gamma (Community Center)",
+    address: "Shanti Nagar, Block B",
+    status: "closed",
+    occupied: 0,
+    capacity: 200,
+    managedBy: "Seva Bharati",
+    tags: ["Standby Mode"],
+  }
+];
+
+// Switch between Resources View and Camps View
+function switchView(view) {
+  document.getElementById("btnResources").classList.toggle("active", view === "resources");
+  document.getElementById("btnCamps").classList.toggle("active", view === "camps");
+  document.getElementById("viewResources").style.display = view === "resources" ? "block" : "none";
+  document.getElementById("viewCamps").style.display = view === "camps" ? "block" : "none";
+}
+
+// Render NGO Resources with smart sort based on search term
+function renderNgos() {
+  const query = document.getElementById("resourceSearch").value.toLowerCase().trim();
+  const sector = document.getElementById("ngoFilter").value;
+  const notice = document.getElementById("searchNotice");
+
+  let list = [...ngos];
+
+  // Sector filtering
+  if (sector) {
+    list = list.filter(n => n.sector === sector || n.location.includes(sector));
+  }
+
+  // Detect which resource user is searching for
+  let sortKey = null;
+  if (query.includes("water")) sortKey = "water";
+  else if (query.includes("food") || query.includes("ration")) sortKey = "food";
+  else if (query.includes("med") || query.includes("aid") || query.includes("kit")) sortKey = "firstAid";
+  else if (query.includes("blanket") || query.includes("bed")) sortKey = "blankets";
+
+  // Auto-sort descending by stock
+  if (sortKey) {
+    list.sort((a, b) => b.supplies[sortKey].stock - a.supplies[sortKey].stock);
+    notice.style.display = "block";
+    notice.innerHTML = `Sorted by highest available <strong>${list[0].supplies[sortKey].label}</strong> first.`;
+  } else {
+    notice.style.display = "none";
+    if (query) {
+      list = list.filter(n => 
+        n.name.toLowerCase().includes(query) || 
+        n.location.toLowerCase().includes(query)
+      );
+    }
+  }
+
+  const container = document.getElementById("ngoGrid");
+  if (list.length === 0) {
+    container.innerHTML = `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--ink-soft);">No NGOs found matching your search.</div>`;
+    return;
+  }
+
+  container.innerHTML = list.map(n => `
+    <div class="ngo-card">
+      <div>
+        <div class="ngo-head">
+          <div>
+            <h3 class="ngo-name">${n.name}</h3>
+            <p class="ngo-loc">📍 ${n.location}</p>
+          </div>
+          <span class="verified-badge">✓ Verified NGO</span>
+        </div>
+
+        <div class="supply-grid">
+          <div class="supply-box ${sortKey === 'water' ? 'highlight' : ''}">
+            <div class="supply-label">💧 Potable Water</div>
+            <div class="supply-val">${n.supplies.water.stock.toLocaleString()} <small>L</small></div>
+          </div>
+          <div class="supply-box ${sortKey === 'food' ? 'highlight' : ''}">
+            <div class="supply-label">🍲 Food Packets</div>
+            <div class="supply-val">${n.supplies.food.stock.toLocaleString()} <small>Pks</small></div>
+          </div>
+          <div class="supply-box ${sortKey === 'firstAid' ? 'highlight' : ''}">
+            <div class="supply-label">🩹 First-Aid Kits</div>
+            <div class="supply-val">${n.supplies.firstAid.stock.toLocaleString()} <small>Kits</small></div>
+          </div>
+          <div class="supply-box ${sortKey === 'blankets' ? 'highlight' : ''}">
+            <div class="supply-label">🛏️ Blankets</div>
+            <div class="supply-val">${n.supplies.blankets.stock.toLocaleString()} <small>Units</small></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <div class="coord-info">Coordinator: <strong>${n.coordinatorPhone}</strong></div>
+        <button class="btn btn-primary btn-sm" onclick="alert('Initiating supply transfer request with ' + '${n.name}')">Request Transfer</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+// Render Camps
+function renderCamps() {
+  const statusLabel = { open: "Open", nearlyfull: "Nearly Full", closed: "Closed" };
+  document.getElementById("campGrid").innerHTML = camps.map(c => {
+    const pct = Math.round((c.occupied / c.capacity) * 100);
+    return `
+    <div class="card camp-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h4 style="margin:0;font-size:1.1rem;">${c.name}</h4>
+        <span class="status-pill ${c.status}">${statusLabel[c.status]}</span>
+      </div>
+      <p class="addr" style="margin:4px 0 10px;">📍 ${c.address} • Managed by: <strong>${c.managedBy}</strong></p>
+      <div class="occ-label"><span>Occupancy</span><span>${pct}% Full</span></div>
+      <div class="bar-track"><div class="bar-fill ${pct > 90 ? 'critical' : pct > 70 ? 'low' : 'optimal'}" style="width:${pct}%"></div></div>
+      <p class="supply-meta" style="margin-top:6px;">${c.occupied} / ${c.capacity} Residents Sheltered</p>
+      <div class="camp-tags">${c.tags.map(t => `<span class="camp-tag">${t}</span>`).join("")}</div>
+      <div class="camp-actions">
+        <button class="btn btn-outline btn-sm" onclick="alert('Opening navigation route to ' + '${c.name}')">📍 Route</button>
+        <button class="btn btn-primary btn-sm" onclick="alert('Dialing Camp Operations Desk...')">📞 Contact Desk</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+document.getElementById("resourceSearch").addEventListener("input", renderNgos);
+document.getElementById("ngoFilter").addEventListener("change", renderNgos);
+
+// Initial Load
+renderNgos();
+renderCamps();
+</script>
+
+</body>
+</html>
