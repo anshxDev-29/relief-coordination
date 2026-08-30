@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="about.css">
+</head>
+<body>
+    <script>
+  // Runs immediately when sub-page loads to apply saved theme
+  document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.body.classList.add('light-theme');
+      
+      // If the sub-page has a theme toggle button in its navbar, update its text
+      const themeBtn = document.getElementById('themeToggleBtn');
+      if (themeBtn) {
+        themeBtn.innerHTML = '🌙 Dark';
+      }
+    }
+  });
+
+  // Allows toggling theme from sub-pages if they have a theme button
+  function toggleTheme() {
+    const body = document.body;
+    body.classList.toggle('light-theme');
+    const isLight = body.classList.contains('light-theme');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (themeBtn) {
+      themeBtn.innerHTML = isLight ? '🌙 Dark' : '☀️ Light';
+    }
+  }
+</script>
+
+
+    <div class="main">
+        <div class="navbar">
+            <div class="left">
+                <h2>🚨 RELIEF CONNECT</h2>
+            </div>
+                <div class="prj">
+                    <h3>PROJECT OVERVIEW</h3>
+                </div>
+            <div class="right">
+               <a href="../home page/index.html" class="nav-link">← Home Dashboard</a>
+               <a href="../dispatch board/dispatch.html" class="nav-link">Dispatch Center</a>
+            </div>
+        </div>
+        <div class="header">
+            <div class="div1">
+                <h2>Rapid Emergency Assistance & Coordination Portal</h2>
+                <p>Relief Connect is a real-time disaster management system for in emergency-response.</p>
+            </div>
+        </div>
+        <div class="ftr">
+        <div class="features">
+            <h2>Core System Features</h2>
+            <div class="line"></div>
+            <div class="cards">
+                <div class="card">
+                    <h1>🚨</h1>
+                    <h3>Zero-Signup</h3>
+                    <h3>Requesting</h3>
+                    <p>
+                        Enables stranded and affected victims to request emergency assistance without signing up.
+                    </p>
+                </div>
+                <div class="card">
+                    <h1>🤖</h1>
+                    <h3>A.I Priority Scoring</h3>
+                    <h3>Engine</h3>
+                    <p>Calculates urgency scores based on severity,location,and context to prioritize requests and allocate resources whre they're needed most.</p>
+                </div>
+                <div class="card">
+                    <h1>📋</h1>
+                    <h3>Live Dispatch</h3>
+                    <h3>Command</h3>
+                    <p>Enables NGOs,volunteer teams ,and authorities to coordinate in real time.Assign tasks,track progress,and communicate in a centtralized command hub.</p>
+                </div>
+                <div class="card">
+                    <h1>⛺</h1>
+                    <h3>Camp & Supply</h3>
+                    <h3>Tracking</h3>
+                    <p>Tracks relief camps,shelters,and essebtial supplies in real time.Monitors capacity,inventory,and distribution to ensure help reaches those who need it most</p>
+                </div>
+            </div>
+            <h2>Technology & Architecture</h2>
+            <div class="boxes">
+                <div class="box">HTML5 & CSS3 Flexbox/Grid</div>
+                <div class="box"> JavaScript ES6+</div>
+                <div class="box">OpenStreetMap Tiles</div>
+                <div class="box">HTML5 Geolocation API </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Emergency Requests — Relief Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="requests.css">
+</head>
+<body class="requests-body">
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="brand">🚨 Relief<span class="dot">Connect</span></div>
+      <div class="nav-links">
+        <a href="../home page/index.html">Home</a>
+        <a href="../dispatch board/dispatch.html">Dispatch</a>
+        <a href="../live map/map.html">Live Map</a>
+        <a href="../camps/camps.html">Camps & Supplies</a>
+        <a href="../my requests/requests.html" class="active">My Requests</a>
+        <a href="../analytics/analytics.html">Analytics</a>
+      </div>
+      <div class="nav-actions">
+        <a href="../request form/request.html" class="btn btn-primary">+ New Request</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="requests-container">
+
+    <section class="page-intro">
+      <span class="badge-tag">Survivor Status Portal</span>
+      <h1>My Submitted Requests</h1>
+      <p>Real-time status tracking and deployment roadmaps for your active emergency calls.</p>
+    </section>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+      <button class="tab-btn active" onclick="filterRequests('all', this)">All Requests (<span id="countAll">3</span>)</button>
+      <button class="tab-btn" onclick="filterRequests('active', this)">In Progress (<span id="countActive">2</span>)</button>
+      <button class="tab-btn" onclick="filterRequests('resolved', this)">Resolved (<span id="countResolved">1</span>)</button>
+    </div>
+
+    <!-- Container for Multiple Dynamic Request Cards -->
+    <div class="requests-list" id="requestsList">
+      <!-- Injected via JavaScript -->
+    </div>
+
+  </main>
+
+  <footer>Relief Connect — Dedicated Emergency Response & Survivor Coordination</footer>
+
+  <script type="module">
+    import { db, doc, onSnapshot } from "../js/firebase-init.js";
+
+    const TRACK_KEY = "relief_connect_my_tickets";
+    let trackedIds = JSON.parse(localStorage.getItem(TRACK_KEY) || "[]");
+    let myRequests = [];
+
+    const emergencyLabels = {
+      critical_trapped: "Trapped / Rising Water Level",
+      medical_emergency: "Medical Emergency",
+      food_water: "Food & Clean Water",
+      shelter_blankets: "Shelter / Structural Collapse",
+    };
+
+    const stepsTemplate = [
+      { title: "Request Received", desc: "GPS coordinates locked" },
+      { title: "Under Verification", desc: "Verified by Command Center" },
+      { title: "Team Dispatched", desc: "En route to your location" },
+      { title: "On-Site Rescue", desc: "Relocation to nearest shelter" },
+    ];
+
+    function stepIndexFor(status) {
+      if (status === "resolved") return 3;
+      if (status === "assigned") return 2;
+      return 0;
+    }
+
+    function timeAgo(ms) {
+      if (!ms) return "just now";
+      const mins = Math.floor((Date.now() - ms) / 60000);
+      if (mins < 1) return "just now";
+      if (mins < 60) return `${mins} min${mins > 1 ? "s" : ""} ago`;
+      const hrs = Math.floor(mins / 60);
+      return `${hrs} hr${hrs > 1 ? "s" : ""} ago`;
+    }
+
+    function toCardModel(id, data) {
+      const stepIndex = stepIndexFor(data.status);
+      const urgency = (data.priorityLabel || "medium").toUpperCase();
+      const colorMap = {
+        CRITICAL: { color: "var(--accent)", bg: "var(--accent-soft)" },
+        HIGH: { color: "var(--amber)", bg: "var(--amber-soft)" },
+        MEDIUM: { color: "var(--green)", bg: "var(--green-soft)" },
+      };
+      const c = colorMap[urgency] || colorMap.MEDIUM;
+      return {
+        id,
+        status: data.status === "resolved" ? "resolved" : "active",
+        stepIndex,
+        urgency,
+        urgencyColor: c.color,
+        urgencyBg: c.bg,
+        submittedTime: timeAgo(data.createdAtMs),
+        type: emergencyLabels[data.emergencyType] || data.emergencyType || "—",
+        location: data.location || "—",
+        assignedUnit: data.status === "pending" ? "Awaiting assignment" : "Field Response Unit",
+        coordinatorPhone: data.phone || "",
+        headcount: `${data.headcount || 1} ${data.headcount === 1 ? "Person" : "People"}`,
+        steps: stepsTemplate,
+      };
+    }
+
+    function renderRequests(filter = 'all') {
+      const container = document.getElementById('requestsList');
+      const filtered = myRequests.filter(r => filter === 'all' || r.status === filter);
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="background:#ffffff; border:1px solid var(--line); border-radius:var(--radius-lg); padding:40px; text-align:center; color:var(--ink-soft);">
+            ${myRequests.length === 0
+              ? `You haven't submitted any requests from this device yet. <br><br><a href="../request form/request.html" class="btn btn-primary" style="display:inline-block;margin-top:10px;">Submit an SOS Request</a>`
+              : `No ${filter} requests found.`}
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map((req, idx) => `
+        <article class="request-card" style="animation-delay: ${idx * 60}ms;">
+          
+          <div class="card-header">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="ticket-id">TICKET #${req.id.slice(0, 8).toUpperCase()}</span>
+              <span style="background:${req.urgencyBg}; color:${req.urgencyColor}; font-size:0.75rem; font-weight:700; padding:3px 10px; border-radius:999px; border: 1px solid ${req.urgencyColor}40;">
+                ${req.urgency} URGENCY
+              </span>
+            </div>
+            <div class="timestamp">Submitted ${req.submittedTime}</div>
+          </div>
+
+          <div class="request-summary">
+            <div class="info-group">
+              <label>Emergency Type</label>
+              <span class="value">${req.type}</span>
+            </div>
+            <div class="info-group">
+              <label>Location</label>
+              <span class="value">📍 ${req.location}</span>
+            </div>
+            <div class="info-group">
+              <label>Assigned Support</label>
+              <span class="value highlight-text">${req.assignedUnit}</span>
+            </div>
+            <div class="info-group">
+              <label>Headcount</label>
+              <span class="value">${req.headcount}</span>
+            </div>
+          </div>
+
+          <div class="roadmap-wrapper">
+            <h3>📍 Real-Time Response Roadmap</h3>
+            
+            <div class="roadmap-timeline">
+              ${req.steps.map((step, sIdx) => {
+                let statusClass = "pending";
+                let iconContent = sIdx + 1;
+
+                if (sIdx < req.stepIndex) {
+                  statusClass = "completed";
+                  iconContent = "✓";
+                } else if (sIdx === req.stepIndex) {
+                  statusClass = req.status === "resolved" ? "completed" : "active";
+                  iconContent = req.status === "resolved" ? "✓" : `<span class="pulse-ring"></span>🚨`;
+                }
+
+                return `
+                  <div class="step ${statusClass}">
+                    <div class="step-icon">${iconContent}</div>
+                    <div class="step-content">
+                      <h4>${step.title}</h4>
+                      <p>${step.desc}</p>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <div>
+              <span style="font-size:0.84rem; color:var(--ink-soft);">Field Contact: <strong>${req.coordinatorPhone}</strong></span>
+            </div>
+            <div class="action-group">
+              ${req.status !== 'resolved' ? `
+                <a href="tel:${req.coordinatorPhone}" class="btn-action btn-call-team">
+                  📞 Call Unit Lead
+                </a>
+                <button class="btn-action btn-cancel-request" onclick="untrackTicket('${req.id}')">
+                  Remove from My List
+                </button>
+              ` : `
+                <button class="btn-action" style="background:#f1f5f9; color:var(--ink-soft); cursor:default;" disabled>
+                  ✓ Ticket Closed
+                </button>
+              `}
+            </div>
+          </div>
+
+        </article>
+      `).join('');
+
+      updateCounts();
+    }
+
+    function untrackTicket(id) {
+      if (confirm(`Remove Ticket #${id.slice(0, 8).toUpperCase()} from your tracked list on this device? This does not cancel the rescue request.`)) {
+        trackedIds = trackedIds.filter((t) => t !== id);
+        localStorage.setItem(TRACK_KEY, JSON.stringify(trackedIds));
+        myRequests = myRequests.filter((r) => r.id !== id);
+        renderRequests();
+      }
+    }
+    window.untrackTicket = untrackTicket;
+
+    function filterRequests(status, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderRequests(status);
+    }
+    window.filterRequests = filterRequests;
+
+    function updateCounts() {
+      document.getElementById('countAll').textContent = myRequests.length;
+      document.getElementById('countActive').textContent = myRequests.filter(r => r.status === 'active').length;
+      document.getElementById('countResolved').textContent = myRequests.filter(r => r.status === 'resolved').length;
+    }
+
+    if (trackedIds.length === 0) {
+      renderRequests();
+    } else {
+      trackedIds.forEach((id) => {
+        try {
+          onSnapshot(doc(db, "requests", id), (snap) => {
+            if (!snap.exists()) return;
+            const model = toCardModel(id, snap.data());
+            const idx = myRequests.findIndex((r) => r.id === id);
+            if (idx >= 0) myRequests[idx] = model;
+            else myRequests.push(model);
+            const activeTab = document.querySelector('.tab-btn.active');
+            renderRequests(activeTab ? activeTab.textContent.includes('All') ? 'all' : activeTab.textContent.includes('Progress') ? 'active' : 'resolved' : 'all');
+          });
+        } catch (e) {
+          console.warn("Firebase not connected yet.", e);
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Active Dispatch Board — Relief Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dispatch.css">
+</head>
+<body class="dispatch-body">
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <div class="brand">🚨 Relief<span class="dot">Connect</span></div>
+    <div class="nav-links">
+      <a href="../home page/index.html">Home</a>
+      <a href="../dispatch board/dispatch.html" class="active">Dispatch</a>
+      <a href="../live map/map.html">Live Map</a>
+      <a href="../camps/camps.html">Camps & Supplies</a>
+      <a href="../my requests/requests.html">My Requests</a>
+      <a href="../analytics/analytics.html">Analytics</a>
+    </div>
+    <div class="nav-actions">
+      <a href="../request form/request.html" class="btn btn-primary">+ New Request</a>
+    </div>
+  </div>
+</nav>
+
+<main class="dispatch-container">
+  <div style="margin-bottom: 24px;">
+    <span class="badge-tag">Command Center</span>
+    <h2 style="font-family:var(--font-display); margin: 8px 0 4px; font-size: 1.8rem;">Relief Coordination Centre</h2>
+    <p style="color:var(--ink-soft); margin:0; font-size: 0.95rem;">Live triage and coordinated responder deployments across all operational zones.</p>
+  </div>
+
+  <section class="stats-row">
+    <div class="stat-card border-red">
+      <span class="stat-title">Critical Pending</span>
+      <span class="stat-value red-text" id="statCritical">2</span>
+    </div>
+    <div class="stat-card border-yellow">
+      <span class="stat-title">In Progress / Dispatched</span>
+      <span class="stat-value yellow-text" id="statDispatched">1</span>
+    </div>
+    <div class="stat-card border-green">
+      <span class="stat-title">Resolved Incidents</span>
+      <span class="stat-value green-text" id="statResolved">1</span>
+    </div>
+    <div class="stat-card border-blue">
+      <span class="stat-title">Total Active Incidents</span>
+      <span class="stat-value blue-text" id="statTotal">4</span>
+    </div>
+  </section>
+
+  <section class="controls-bar">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="🔍 Search victim name, phone, or location..." onkeyup="filterRequests()">
+    </div>
+    <div class="filter-group">
+      <select id="priorityFilter" onchange="filterRequests()">
+        <option value="all">All Priorities</option>
+        <option value="critical">Critical Only</option>
+        <option value="high">High Only</option>
+        <option value="medium">Medium Only</option>
+      </select>
+
+      <select id="statusFilter" onchange="filterRequests()">
+        <option value="all">All Statuses</option>
+        <option value="pending">Pending</option>
+        <option value="assigned">Dispatched</option>
+        <option value="resolved">Resolved</option>
+      </select>
+    </div>
+  </section>
+
+  <section class="table-card">
+    <table class="dispatch-table">
+      <thead>
+        <tr>
+          <th>Priority Score</th>
+          <th>Victim Info</th>
+          <th>Emergency Type</th>
+          <th>Location</th>
+          <th>Time</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="requestTableBody">
+        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--ink-soft);">Loading live requests…</td></tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<footer>Relief Connect — Unified Emergency Operations & Tactical Dispatch</footer>
+
+<!-- Suggested Supply Kit Modal -->
+<div id="kitModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:2000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:16px;padding:26px;max-width:380px;width:100%;box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+    <h3 id="kitModalName" style="margin:0 0 4px;font-family:'Fraunces',serif;font-size:1.1rem;">Suggested Kit</h3>
+    <p id="kitModalNote" style="font-size:0.82rem;color:#6b7280;margin:0 0 18px;"></p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+      <div style="background:#eff6ff;border-radius:10px;padding:12px;">
+        <div style="font-size:0.75rem;color:#1e40af;font-weight:600;">💧 Water</div>
+        <div id="kitWater" style="font-size:1.3rem;font-weight:700;color:#1e40af;">–</div>
+      </div>
+      <div style="background:#fef3c7;border-radius:10px;padding:12px;">
+        <div style="font-size:0.75rem;color:#92400e;font-weight:600;">🍲 Food</div>
+        <div id="kitFood" style="font-size:1.3rem;font-weight:700;color:#92400e;">–</div>
+      </div>
+      <div style="background:#f3e8ff;border-radius:10px;padding:12px;">
+        <div style="font-size:0.75rem;color:#6b21a8;font-weight:600;">🛏️ Blankets</div>
+        <div id="kitBlankets" style="font-size:1.3rem;font-weight:700;color:#6b21a8;">–</div>
+      </div>
+      <div style="background:#fee2e2;border-radius:10px;padding:12px;">
+        <div style="font-size:0.75rem;color:#991b1b;font-weight:600;">🩹 First-Aid</div>
+        <div id="kitFirstAid" style="font-size:1.3rem;font-weight:700;color:#991b1b;">–</div>
+      </div>
+    </div>
+    <p style="font-size:0.72rem;color:#9ca3af;margin:0 0 16px;">Based on Sphere Humanitarian Standards (15L water/person/day).</p>
+    <button type="button" class="btn-action" style="width:100%;background:#111827;color:#fff;padding:11px;border-radius:999px;" onclick="closeKitModal()">Close</button>
+  </div>
+</div>
+
+<script src="../js/toast.js"></script>
+<script type="module">
+  import { db, collection, onSnapshot, doc, updateDoc, query, orderBy } from "../js/firebase-init.js";
+  import { calculateSupplyKit } from "../js/logic.js";
+
+  const tbody = document.getElementById('requestTableBody');
+  let allRequests = [];
+
+  function timeAgo(ms) {
+    if (!ms) return "just now";
+    const mins = Math.floor((Date.now() - ms) / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins} min${mins > 1 ? "s" : ""} ago`;
+    const hrs = Math.floor(mins / 60);
+    return `${hrs} hr${hrs > 1 ? "s" : ""} ago`;
+  }
+
+  const emergencyLabels = {
+    critical_trapped: "Trapped / Rising Water",
+    medical_emergency: "Medical Emergency",
+    food_water: "Food & Clean Water",
+    shelter_blankets: "Shelter / Structural",
+  };
+
+  function pillClass(label) {
+    if (label === "critical") return "pill-critical";
+    if (label === "high") return "pill-high";
+    return "pill-medium";
+  }
+
+  function statusInfo(status) {
+    if (status === "resolved") return { cls: "status-resolved", text: "Resolved" };
+    if (status === "assigned") return { cls: "status-dispatched", text: "Team En Route" };
+    return { cls: "status-pending", text: "Pending" };
+  }
+
+  function renderRows() {
+    const search = (document.getElementById('searchInput').value || "").toLowerCase();
+    const priorityVal = document.getElementById('priorityFilter').value;
+    const statusVal = document.getElementById('statusFilter').value;
+
+    const filtered = allRequests.filter((r) => {
+      const text = `${r.name || ""} ${r.phone || ""} ${r.location || ""}`.toLowerCase();
+      const matchesSearch = !search || text.includes(search);
+      const matchesPriority = priorityVal === 'all' || r.priorityLabel === priorityVal;
+      const matchesStatus = statusVal === 'all' || r.status === statusVal;
+      return matchesSearch && matchesPriority && matchesStatus;
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--ink-soft);">No matching requests.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map((r) => {
+      const st = statusInfo(r.status);
+      const actionBtn = r.status === 'resolved'
+        ? `<button class="btn-action btn-disabled" disabled>Completed</button>`
+        : r.status === 'assigned'
+        ? `<button class="btn-action btn-resolve" data-action="resolve" data-id="${r.id}">✅ Resolve</button>`
+        : `<button class="btn-action btn-dispatch" data-action="dispatch" data-id="${r.id}">🚨 Dispatch</button>`;
+
+      return `
+        <tr class="request-row" data-priority="${r.priorityLabel}" data-status="${r.status}">
+          <td>
+            <div class="score-pill ${pillClass(r.priorityLabel)}">
+              <span class="score-num">${r.priorityScore ?? "–"}</span>
+              <span class="score-label">${(r.priorityLabel || "").toUpperCase()}</span>
+            </div>
+          </td>
+          <td>
+            <div class="victim-details">
+              <span class="victim-name">${r.name || "Unknown"}</span>
+              <span class="victim-phone">📞 ${r.phone || ""}${r.altPhone ? ` <span style="color:var(--ink-soft);font-size:0.78em;">(Alt: ${r.altPhone})</span>` : ""}</span>
+              <div class="risk-badges" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">
+                ${r.quickSOS ? `<span class="risk-badge" style="background:#1e293b;color:#fff;font-size:0.72rem;padding:2px 8px;border-radius:999px;font-weight:600;">⚡ Quick SOS — Unverified, call first</span>` : ""}
+                ${r.headcount ? `<span class="risk-badge" style="background:#eef2ff;color:#4338ca;font-size:0.72rem;padding:2px 8px;border-radius:999px;font-weight:600;">👥 ${r.headcount} people</span>` : ""}
+                ${r.hasVulnerable ? `<span class="risk-badge" style="background:#fef3c7;color:#92400e;font-size:0.72rem;padding:2px 8px;border-radius:999px;font-weight:600;">⚠️ Vulnerable</span>` : ""}
+                ${r.isTrapped ? `<span class="risk-badge" style="background:#fee2e2;color:#991b1b;font-size:0.72rem;padding:2px 8px;border-radius:999px;font-weight:600;">🚨 Trapped</span>` : ""}
+              </div>
+            </div>
+          </td>
+          <td><span class="tag">${emergencyLabels[r.emergencyType] || r.emergencyType || "—"}</span></td>
+          <td>📍 ${r.location || "—"}</td>
+          <td>${timeAgo(r.createdAtMs)}</td>
+          <td><span class="status-badge ${st.cls}">${st.text}</span></td>
+          <td>
+            <div class="action-buttons">
+              ${actionBtn}
+              <a href="tel:${r.phone}" class="btn-action btn-call">📞 Call</a>
+              <button class="btn-action" style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;" data-action="kit" data-id="${r.id}">📦 Kit</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function updateStats() {
+    document.getElementById('statCritical').textContent = allRequests.filter(r => r.priorityLabel === 'critical' && r.status !== 'resolved').length;
+    document.getElementById('statDispatched').textContent = allRequests.filter(r => r.status === 'assigned').length;
+    document.getElementById('statResolved').textContent = allRequests.filter(r => r.status === 'resolved').length;
+    document.getElementById('statTotal').textContent = allRequests.length;
+  }
+
+  document.getElementById('searchInput').addEventListener('input', renderRows);
+  document.getElementById('priorityFilter').addEventListener('change', renderRows);
+  document.getElementById('statusFilter').addEventListener('change', renderRows);
+
+  tbody.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const id = btn.dataset.id;
+
+    if (btn.dataset.action === 'kit') {
+      openKitModal(id);
+      return;
+    }
+
+    const newStatus = btn.dataset.action === 'dispatch' ? 'assigned' : 'resolved';
+    try {
+      await updateDoc(doc(db, "requests", id), { status: newStatus });
+      showToast(newStatus === 'assigned' ? "Team dispatched — status updated live." : "Marked as resolved.", "success", 2500);
+    } catch (err) {
+      showToast("Could not update status — check your Firebase connection.", "error");
+    }
+  });
+
+  function openKitModal(id) {
+    const r = allRequests.find(req => req.id === id);
+    if (!r) return;
+    const kit = calculateSupplyKit({
+      headcount: r.headcount,
+      emergencyType: r.emergencyType,
+      hasVulnerable: r.hasVulnerable,
+      isTrapped: r.isTrapped,
+    });
+
+    document.getElementById('kitModalName').textContent = `Suggested Kit — ${r.name || 'Unknown'} (${r.headcount || 1} people)`;
+    document.getElementById('kitModalNote').textContent = kit.note;
+    document.getElementById('kitWater').textContent = `${kit.waterLiters} L`;
+    document.getElementById('kitFood').textContent = `${kit.foodPackets} packets`;
+    document.getElementById('kitBlankets').textContent = `${kit.blankets} units`;
+    document.getElementById('kitFirstAid').textContent = `${kit.firstAidKits} kits`;
+    document.getElementById('kitModal').style.display = 'flex';
+  }
+  window.closeKitModal = () => { document.getElementById('kitModal').style.display = 'none'; };
+
+  try {
+    const q = query(collection(db, "requests"), orderBy("priorityScore", "desc"));
+    let knownIds = new Set();
+    let firstLoad = true;
+    let flashInterval = null;
+    const originalTitle = document.title;
+
+    function playAlertSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.4);
+      } catch (e) { /* audio not available, fail silently */ }
+    }
+
+    function flashTabTitle(count) {
+      if (flashInterval) clearInterval(flashInterval);
+      let on = false;
+      flashInterval = setInterval(() => {
+        document.title = on ? originalTitle : `🚨 (${count}) New Critical!`;
+        on = !on;
+      }, 1000);
+      setTimeout(() => {
+        clearInterval(flashInterval);
+        document.title = originalTitle;
+      }, 8000);
+    }
+
+    onSnapshot(q, (snap) => {
+      const fresh = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+      if (!firstLoad) {
+        const newCritical = fresh.filter(r => !knownIds.has(r.id) && r.priorityLabel === 'critical');
+        if (newCritical.length > 0) {
+          playAlertSound();
+          showToast(`🚨 ${newCritical.length} new CRITICAL request${newCritical.length > 1 ? 's' : ''} just came in!`, "error", 6000);
+          flashTabTitle(newCritical.length);
+        }
+      }
+      knownIds = new Set(fresh.map(r => r.id));
+      firstLoad = false;
+
+      allRequests = fresh;
+      updateStats();
+      renderRows();
+    });
+  } catch (e) {
+    console.warn("Firebase not connected yet.", e);
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--ink-soft);">Could not connect to Firebase.</td></tr>`;
+  }
+</script>
+
+</body>
+</html>

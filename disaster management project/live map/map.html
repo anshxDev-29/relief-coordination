@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Disaster Geomap & Operations — Relief Connect</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="map.css">
+</head>
+<body class="map-body">
+
+  <!-- Unified Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="brand">🚨 Relief<span class="dot">Connect</span></div>
+      <div class="nav-links">
+        <a href="../home page/index.html">Home</a>
+        <a href="../dispatch board/dispatch.html">Dispatch</a>
+        <a href="../live map/map.html" class="active">Live Map</a>
+        <a href="../camps/camps.html">Camps & Supplies</a>
+        <a href="../my requests/requests.html">My Requests</a>
+        <a href="../analytics/analytics.html">Analytics</a>
+      </div>
+      <div class="nav-actions">
+        <a href="../request form/request.html" class="btn btn-primary">+ New Request</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Balanced Proportion Dual-Panel Layout -->
+  <div class="map-layout-container">
+    
+    <!-- LEFT PANEL: Primary Operations Workspace (54%) -->
+    <main class="main-workspace">
+      
+      <div class="workspace-header">
+        <div class="workspace-title-box">
+          <h2>Live Incident Map</h2>
+          <p>Click any map marker or merged cluster below to inspect itemized requirements.</p>
+        </div>
+        <div>
+          <span style="font-size:0.8rem; font-weight:700; background:var(--accent-soft); color:var(--accent); padding:4px 10px; border-radius:999px;">
+            ● <span id="markerCount">8</span> Active Vectors
+          </span>
+        </div>
+      </div>
+      <!-- Quick Triage Filter Pills -->
+      <div class="filter-pills-bar">
+        <label class="pill-toggle active" id="pillCritical" onclick="toggleFilter('toggleCritical', 'pillCritical')">
+          <input type="checkbox" id="toggleCritical" checked>
+          <span class="badge-dot dot-red"></span> Critical SOS (<span id="countCritical">0</span>)
+        </label>
+        <label class="pill-toggle active" id="pillHigh" onclick="toggleFilter('toggleHigh', 'pillHigh')">
+          <input type="checkbox" id="toggleHigh" checked>
+          <span class="badge-dot dot-yellow"></span> High Priority (<span id="countHigh">0</span>)
+        </label>
+        <label class="pill-toggle active" id="pillMedium" onclick="toggleFilter('toggleMedium', 'pillMedium')">
+          <input type="checkbox" id="toggleMedium" checked>
+          <span class="badge-dot dot-blue"></span> Medium / Rations (<span id="countMedium">0</span>)
+        </label>
+        <label class="pill-toggle active" id="pillCamps" onclick="toggleFilter('toggleCamps', 'pillCamps')">
+          <input type="checkbox" id="toggleCamps" checked>
+          <span class="badge-dot dot-green"></span> Relief Camps (<span id="countCamps">0</span>)
+        </label>
+      </div>
+
+      <!-- Scrollable Main Workspace Details -->
+      <div class="workspace-scroll-area">
+        
+        <!-- Live Selected Inspector -->
+        <div class="inspector-card active-critical" id="inspectorCard">
+          <div class="inspector-head">
+            <div>
+              <div id="inspectorBadge">
+                <span style="background:var(--accent-soft); color:var(--accent); font-size:0.75rem; font-weight:700; padding:3px 10px; border-radius:999px; border:1px solid #fecaca;">⚡ 3 Distress Requests Merged</span>
+              </div>
+              <h3 class="inspector-title" id="inspectorTitle">Sector 4 Flood Cluster</h3>
+              <p style="font-size:0.85rem; color:var(--ink-soft); margin-top:2px;" id="inspectorLocation">📍 Sector 4, Block C, Meerut</p>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="centerSelectedMarker()" title="Focus on map">🎯 Locate Pin</button>
+          </div>
+
+          <div id="inspectorContent">
+            <!-- Dynamically Rendered Content -->
+          </div>
+        </div>
+
+        <!-- Proximity Deduplication Engine Section -->
+        <div>
+          <div class="section-subhead">
+            <span>⚡ Automated Spatial Clusters (Deduplicated)</span>
+            <small style="color:var(--ink-soft); font-weight:500;">Radius &le; 100m</small>
+          </div>
+
+          <div class="cluster-grid">
+            <div class="merged-ticket-card selected" id="cluster-card-1" onclick="openLocationDetails(1)">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <strong style="font-size:0.88rem;">Sector 4 Cluster</strong>
+                <span style="background:var(--accent-soft); color:var(--accent); font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:4px;">3 Merged</span>
+              </div>
+              <p style="font-size:0.78rem; color:var(--ink-soft); margin:0;">📍 Near Block C • Urgency: <strong style="color:var(--accent);">96.4</strong></p>
+            </div>
+
+            <div class="merged-ticket-card" id="cluster-card-3" onclick="openLocationDetails(3)">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <strong style="font-size:0.88rem;">NH-58 Bypass Cluster</strong>
+                <span style="background:var(--blue-soft); color:var(--blue); font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:4px;">2 Merged</span>
+              </div>
+              <p style="font-size:0.78rem; color:var(--ink-soft); margin:0;">📍 Gate 2 Shelter • Urgency: <strong>58.2</strong></p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- RIGHT PANEL: High-Contrast Leaflet GIS Radar (46%) -->
+    <section class="map-canvas-container">
+      <div id="disasterMap"></div>
+    </section>
+
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script type="module">
+    import { db, collection, onSnapshot } from "../js/firebase-init.js";
+    import { distanceKm, calculateSupplyKit } from "../js/logic.js";
+
+    // Initialize Leaflet Map with Light Voyager Tiles
+    const map = L.map('disasterMap', { zoomControl: false }).setView([28.9845, 77.7064], 12);
+
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+
+    const emergencyLabels = {
+      critical_trapped: "Trapped / Rising Water",
+      medical_emergency: "Medical Emergency",
+      food_water: "Food & Clean Water",
+      shelter_blankets: "Shelter / Structural",
+    };
+    const colorFor = { critical: '#dc2626', high: '#ea580c', medium: '#2563eb' };
+
+    // Relief camps aren't wired to a live data source yet — these two stay
+    // static until you create a "camps" Firestore collection (same pattern
+    // as the "requests" collection used below).
+    const campLocations = [
+      {
+        id: 'camp-1', type: 'camps', isCamp: true,
+        title: 'Camp Alpha (Main Arena)', location: 'Bypass Road, Sector 1',
+        lat: 28.9722, lng: 77.6411, color: '#16a34a',
+        occupied: 410, capacity: 500, manager: 'Red Cross India',
+        tags: ['Medical Unit Active', 'Kitchen Active', 'Clean Water Tank']
+      },
+      {
+        id: 'camp-2', type: 'camps', isCamp: true,
+        title: 'Camp Beta (Sports Complex)', location: 'Sector 2 Sports Grounds',
+        lat: 28.9950, lng: 77.7180, color: '#16a34a',
+        occupied: 288, capacity: 300, manager: 'Goonj Relief Foundation',
+        tags: ['Kitchen Unit Active', 'Medical Desk Active']
+      }
+    ];
+
+    let mapLocations = [...campLocations];
+    let markerStore = [];
+    let currentSelectedId = null;
+    let hasFitBoundsOnce = false;
+
+    window.toggleSubTicketList = function () {
+      const hidden = document.getElementById('subTicketHidden');
+      const btn = document.getElementById('showMoreSubTickets');
+      if (!hidden || !btn) return;
+      const isHidden = hidden.style.display === 'none';
+      hidden.style.display = isHidden ? 'block' : 'none';
+      btn.textContent = isHidden ? 'Show less ▲' : btn.dataset.showText;
+    };
+
+    function requestToSubRequest(r) {
+      return {
+        name: r.name || 'Unknown',
+        phone: r.phone || '',
+        need: emergencyLabels[r.emergencyType] || r.emergencyType || '',
+        headcount: `${r.headcount || 1} People`,
+        headcountNum: r.headcount || 1,
+        hasVulnerable: !!r.hasVulnerable,
+        isTrapped: !!r.isTrapped,
+        emergencyType: r.emergencyType,
+        time: r.createdAtMs ? timeAgo(r.createdAtMs) : 'just now',
+      };
+    }
+
+    // Groups nearby, same-type, recent requests into one map marker —
+    // each request keeps its own Firestore document and its own tracking
+    // on "My Requests"; this only changes how they're *displayed* here.
+    const CLUSTER_RADIUS_KM = 0.4; // ~400m
+    const CLUSTER_WINDOW_MS = 30 * 60 * 1000; // last 30 minutes
+
+    function clusterRequests(requestDocs) {
+      const clusters = [];
+
+      requestDocs.forEach((r) => {
+        if (typeof r.lat !== 'number' || typeof r.lng !== 'number') return;
+
+        const match = clusters.find((c) =>
+          c.emergencyType === r.emergencyType &&
+          distanceKm(c.lat, c.lng, r.lat, r.lng) <= CLUSTER_RADIUS_KM &&
+          Math.abs((r.createdAtMs || Date.now()) - c.anchorTime) <= CLUSTER_WINDOW_MS
+        );
+
+        if (match) {
+          match.items.push(r);
+        } else {
+          clusters.push({
+            lat: r.lat, lng: r.lng,
+            emergencyType: r.emergencyType,
+            anchorTime: r.createdAtMs || Date.now(),
+            items: [r],
+          });
+        }
+      });
+
+      return clusters.map((c, idx) => {
+        const items = c.items;
+        const worstPriority = items.some(i => i.priorityLabel === 'critical') ? 'critical'
+          : items.some(i => i.priorityLabel === 'high') ? 'high' : 'medium';
+        const totalHeadcount = items.reduce((sum, i) => sum + (i.headcount || 1), 0);
+        const anyVulnerable = items.some(i => i.hasVulnerable);
+        const anyTrapped = items.some(i => i.isTrapped);
+
+        const kit = calculateSupplyKit({
+          headcount: totalHeadcount,
+          emergencyType: c.emergencyType,
+          hasVulnerable: anyVulnerable,
+          isTrapped: anyTrapped,
+        });
+
+        return {
+          id: items.length > 1 ? `cluster-${idx}-${items[0].id}` : items[0].id,
+          type: worstPriority,
+          title: items.length > 1
+            ? `${emergencyLabels[c.emergencyType] || c.emergencyType} — ${items.length} Reports`
+            : `${items[0].name || 'Unknown'} — ${emergencyLabels[items[0].emergencyType] || items[0].emergencyType || ''}`,
+          location: items[0].location || '—',
+          lat: c.lat, lng: c.lng,
+          color: colorFor[worstPriority] || colorFor.medium,
+          mergedCount: items.length,
+          totalHeadcount,
+          combinedKit: items.length > 1 ? kit : null,
+          subRequests: items.map(requestToSubRequest),
+        };
+      });
+    }
+
+    function timeAgo(ms) {
+      const mins = Math.floor((Date.now() - ms) / 60000);
+      if (mins < 1) return "just now";
+      if (mins < 60) return `${mins} mins ago`;
+      const hrs = Math.floor(mins / 60);
+      return `${hrs} hr${hrs > 1 ? "s" : ""} ago`;
+    }
+
+    function renderMapMarkers() {
+      markerStore.forEach(m => map.removeLayer(m.layer));
+      markerStore = [];
+
+      const showCritical = document.getElementById('toggleCritical').checked;
+      const showHigh = document.getElementById('toggleHigh').checked;
+      const showMedium = document.getElementById('toggleMedium').checked;
+      const showCamps = document.getElementById('toggleCamps').checked;
+
+      let visibleCount = 0;
+
+      mapLocations.forEach(loc => {
+        if (!loc.lat || !loc.lng) return;
+        if (
+          (loc.type === 'critical' && showCritical) ||
+          (loc.type === 'high' && showHigh) ||
+          (loc.type === 'medium' && showMedium) ||
+          (loc.type === 'camps' && showCamps)
+        ) {
+          visibleCount++;
+
+          // Marker size scales with how many requests are merged here —
+          // a cluster of 15 should look noticeably bigger than a cluster of 2.
+          const radiusSize = loc.mergedCount > 1
+            ? Math.min(14 + (loc.mergedCount - 2) * 2, 30)  // grows with count, capped at 30
+            : (loc.type === 'camps' ? 11 : 9);
+
+          const circleMarker = L.circleMarker([loc.lat, loc.lng], {
+            radius: radiusSize,
+            fillColor: loc.color,
+            color: '#ffffff',
+            weight: 3,
+            opacity: 1,
+            fillOpacity: 0.95
+          }).addTo(map);
+
+          circleMarker.on('click', () => openLocationDetails(loc.id));
+
+          // Clusters of 6+ get a permanent number badge directly on the map
+          // (not just on hover) so large incidents are impossible to miss.
+          if (loc.mergedCount >= 6) {
+            const countLabel = L.marker([loc.lat, loc.lng], {
+              icon: L.divIcon({
+                className: 'cluster-count-badge',
+                html: `<div style="color:#fff;font-weight:800;font-size:${radiusSize > 20 ? '13px' : '11px'};text-align:center;line-height:${radiusSize * 2}px;">${loc.mergedCount}</div>`,
+                iconSize: [radiusSize * 2, radiusSize * 2],
+                iconAnchor: [radiusSize, radiusSize],
+              }),
+              interactive: false,
+            }).addTo(map);
+            markerStore.push({ id: loc.id + '-label', layer: countLabel, lat: loc.lat, lng: loc.lng });
+          }
+
+          const tooltipContent = loc.mergedCount >= 6
+            ? `🔴 MASS INCIDENT — ${loc.mergedCount} Reports: ${loc.title}`
+            : loc.mergedCount > 1
+            ? `⚡ ${loc.mergedCount} Merged: ${loc.title}`
+            : loc.title;
+
+          circleMarker.bindTooltip(tooltipContent, { direction: 'top', offset: [0, -8] });
+
+          markerStore.push({ id: loc.id, layer: circleMarker, lat: loc.lat, lng: loc.lng });
+        }
+      });
+
+      document.getElementById('markerCount').textContent = visibleCount;
+
+      // Update filter badge counts to reflect real underlying request totals (not just cluster count)
+      const countByType = (type) => mapLocations
+        .filter(l => l.type === type && !l.isCamp)
+        .reduce((sum, l) => sum + (l.mergedCount || 1), 0);
+      document.getElementById('countCritical').textContent = countByType('critical');
+      document.getElementById('countHigh').textContent = countByType('high');
+      document.getElementById('countMedium').textContent = countByType('medium');
+      document.getElementById('countCamps').textContent = mapLocations.filter(l => l.isCamp).length;
+
+      // Auto-fit the map to whatever markers actually exist, instead of a fixed static view —
+      // so it works correctly regardless of which city/area real GPS submissions come from.
+      // Only done once on initial load, so the view doesn't jump around during live updates.
+      if (!hasFitBoundsOnce) {
+        const allCoords = mapLocations.filter(l => l.lat && l.lng).map(l => [l.lat, l.lng]);
+        if (allCoords.length > 0) {
+          map.fitBounds(allCoords, { padding: [50, 50], maxZoom: 14 });
+          hasFitBoundsOnce = true;
+        }
+      }
+
+      renderClusterGrid();
+
+      if (currentSelectedId === null && mapLocations.length > 0) {
+        openLocationDetails(mapLocations[0].id);
+      } else if (currentSelectedId !== null) {
+        const stillExists = mapLocations.find(l => l.id === currentSelectedId);
+        if (stillExists) openLocationDetails(currentSelectedId);
+      }
+    }
+
+    function renderClusterGrid() {
+      const grid = document.querySelector('.cluster-grid');
+      if (!grid) return;
+      const nonCampLocations = mapLocations.filter(l => !l.isCamp);
+      if (nonCampLocations.length === 0) {
+        grid.innerHTML = `<p style="color:var(--ink-soft);font-size:0.85rem;">No active SOS requests right now.</p>`;
+        return;
+      }
+      grid.innerHTML = nonCampLocations.map(loc => `
+        <div class="merged-ticket-card ${loc.id === currentSelectedId ? 'selected' : ''}" id="cluster-card-${loc.id}" onclick="openLocationDetails('${loc.id}')">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <strong style="font-size:0.88rem;">${loc.title}</strong>
+            <span style="background:var(--accent-soft); color:var(--accent); font-size:0.7rem; font-weight:800; padding:2px 6px; border-radius:4px;">${(loc.type || '').toUpperCase()}</span>
+          </div>
+          <p style="font-size:0.78rem; color:var(--ink-soft); margin:0;">📍 ${loc.location}</p>
+        </div>
+      `).join('');
+    }
+
+    function openLocationDetails(id) {
+      currentSelectedId = id;
+      const loc = mapLocations.find(l => l.id === id);
+      if (!loc) return;
+
+      const card = document.getElementById('inspectorCard');
+      const badgeContainer = document.getElementById('inspectorBadge');
+      const titleEl = document.getElementById('inspectorTitle');
+      const locEl = document.getElementById('inspectorLocation');
+      const contentEl = document.getElementById('inspectorContent');
+
+      card.className = `inspector-card active-${loc.type === 'camps' ? 'camp' : loc.type}`;
+      titleEl.textContent = loc.title;
+      locEl.textContent = `📍 ${loc.location}`;
+
+      document.querySelectorAll('.merged-ticket-card').forEach(c => c.classList.remove('selected'));
+      const activeCluster = document.getElementById(`cluster-card-${id}`);
+      if (activeCluster) activeCluster.classList.add('selected');
+
+      if (loc.isCamp) {
+        badgeContainer.innerHTML = `<span style="background:var(--green-soft); color:var(--green); font-size:0.75rem; font-weight:700; padding:3px 10px; border-radius:999px; border:1px solid #bbf7d0;">⛺ Verified Relief Shelter</span>`;
+      } else if (loc.mergedCount > 1) {
+        badgeContainer.innerHTML = loc.mergedCount >= 6
+          ? `<span style="background:#1e293b; color:#fff; font-size:0.75rem; font-weight:700; padding:3px 10px; border-radius:999px; border:1px solid #1e293b;">🔴 MASS INCIDENT — ${loc.mergedCount} Reports</span>`
+          : `<span style="background:var(--accent-soft); color:var(--accent); font-size:0.75rem; font-weight:700; padding:3px 10px; border-radius:999px; border:1px solid #fecaca;">⚡ ${loc.mergedCount} Distress Requests Merged</span>`;
+      } else {
+        const bg = loc.type === 'critical' ? 'var(--accent-soft)' : (loc.type === 'high' ? 'var(--amber-soft)' : 'var(--blue-soft)');
+        const fg = loc.type === 'critical' ? 'var(--accent)' : (loc.type === 'high' ? 'var(--amber)' : 'var(--blue)');
+        const border = loc.type === 'critical' ? '#fecaca' : (loc.type === 'high' ? '#fed7aa' : '#bfdbfe');
+        badgeContainer.innerHTML = `<span style="background:${bg}; color:${fg}; border:1px solid ${border}; font-size:0.75rem; font-weight:700; padding:3px 10px; border-radius:999px; text-transform:uppercase;">${loc.type} Urgency</span>`;
+      }
+
+      if (loc.isCamp) {
+        const pct = Math.round((loc.occupied / loc.capacity) * 100);
+        contentEl.innerHTML = `
+          <div style="background:#f8fafc; border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin: 12px 0;">
+            <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; margin-bottom:6px;">
+              <span>Current Occupancy</span>
+              <span style="color:${pct > 90 ? 'var(--accent)' : 'var(--green)'};">${pct}% Full</span>
+            </div>
+            <div style="width:100%; height:8px; background:#e2e8f0; border-radius:999px; overflow:hidden;">
+              <div style="width:${pct}%; height:100%; background:${pct > 90 ? 'var(--accent)' : 'var(--green)'}; transition: width 0.6s ease;"></div>
+            </div>
+            <p style="font-size:0.82rem; color:var(--ink-soft); margin-top:8px;"><strong>${loc.occupied}</strong> / ${loc.capacity} Residents Sheltered</p>
+            <p style="font-size:0.84rem; margin-top:6px;">Managing Agency: <strong>${loc.manager}</strong></p>
+          </div>
+
+          <div style="margin-top:10px;">
+            <h4 style="font-size:0.86rem; margin-bottom:8px; font-weight:700;">Active Amenities:</h4>
+            <div style="display:flex; flex-wrap:wrap; gap:6px;">
+              ${loc.tags.map(t => `<span class="tag-mini">✓ ${t}</span>`).join('')}
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; margin-top:16px;">
+            <button class="btn btn-outline btn-sm" style="flex:1;" onclick="alert('Opening navigation route to ${loc.title}')">📍 Route Directions</button>
+            <button class="btn btn-primary btn-sm" style="flex:1;" onclick="alert('Connecting to Camp Manager Desk...')">📞 Contact Desk</button>
+          </div>
+        `;
+      } else {
+        const combinedKitHtml = loc.mergedCount > 1 && loc.combinedKit ? `
+          <div style="background:#111827; color:#fff; border-radius:var(--radius); padding:16px; margin:12px 0;">
+            <p style="font-size:0.82rem; font-weight:700; margin:0 0 2px;">📦 Combined Kit — ${loc.totalHeadcount} people total</p>
+            <p style="font-size:0.72rem; color:#9ca3af; margin:0 0 10px;">Calculated for the whole cluster, not per-request.</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.82rem;">
+              <div>💧 Water: <strong>${loc.combinedKit.waterLiters} L</strong></div>
+              <div>🍲 Food: <strong>${loc.combinedKit.foodPackets} pkts</strong></div>
+              <div>🛏️ Blankets: <strong>${loc.combinedKit.blankets}</strong></div>
+              <div>🩹 First-Aid: <strong>${loc.combinedKit.firstAidKits} kits</strong></div>
+            </div>
+          </div>` : '';
+
+        contentEl.innerHTML = `
+          ${combinedKitHtml}
+          <div style="margin: 12px 0 6px;">
+            <span style="font-size:0.85rem; font-weight:700; color:var(--ink);">Itemized Ingestion Feed (${loc.subRequests.length})</span>
+          </div>
+
+          <div id="subTicketList">
+            ${loc.subRequests.slice(0, 5).map((req, idx) => `
+              <div class="sub-ticket-card" style="animation-delay: ${idx * 60}ms;">
+                <div class="sub-ticket-header">
+                  <strong style="font-size:0.92rem;">${idx + 1}. ${req.name}</strong>
+                  <span style="font-size:0.75rem; color:var(--ink-soft); font-weight:500;">${req.time}</span>
+                </div>
+                <p style="font-size:0.84rem; color:var(--accent); font-weight:600; margin: 4px 0;">🚨 ${req.need}</p>
+                <div style="display:flex; flex-wrap:wrap; gap:4px; margin:4px 0;">
+                  ${req.hasVulnerable ? `<span style="background:#fef3c7;color:#92400e;font-size:0.7rem;padding:2px 8px;border-radius:999px;font-weight:600;">⚠️ Vulnerable</span>` : ""}
+                  ${req.isTrapped ? `<span style="background:#fee2e2;color:#991b1b;font-size:0.7rem;padding:2px 8px;border-radius:999px;font-weight:600;">🚨 Trapped</span>` : ""}
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--ink-soft); margin-top:6px;">
+                  <span>👥 Headcount: <strong>${req.headcount}</strong></span>
+                  <span>${req.phone}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          ${loc.subRequests.length > 5 ? `
+            <div id="subTicketHidden" style="display:none;">
+              ${loc.subRequests.slice(5).map((req, idx) => `
+                <div class="sub-ticket-card">
+                  <div class="sub-ticket-header">
+                    <strong style="font-size:0.92rem;">${idx + 6}. ${req.name}</strong>
+                    <span style="font-size:0.75rem; color:var(--ink-soft); font-weight:500;">${req.time}</span>
+                  </div>
+                  <p style="font-size:0.84rem; color:var(--accent); font-weight:600; margin: 4px 0;">🚨 ${req.need}</p>
+                  <div style="display:flex; flex-wrap:wrap; gap:4px; margin:4px 0;">
+                    ${req.hasVulnerable ? `<span style="background:#fef3c7;color:#92400e;font-size:0.7rem;padding:2px 8px;border-radius:999px;font-weight:600;">⚠️ Vulnerable</span>` : ""}
+                    ${req.isTrapped ? `<span style="background:#fee2e2;color:#991b1b;font-size:0.7rem;padding:2px 8px;border-radius:999px;font-weight:600;">🚨 Trapped</span>` : ""}
+                  </div>
+                  <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--ink-soft); margin-top:6px;">
+                    <span>👥 Headcount: <strong>${req.headcount}</strong></span>
+                    <span>${req.phone}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            <button type="button" id="showMoreSubTickets" data-show-text="Show ${loc.subRequests.length - 5} more report${loc.subRequests.length - 5 > 1 ? 's' : ''} ▼" onclick="toggleSubTicketList()" style="width:100%;padding:8px;margin-top:6px;border-radius:8px;border:1px dashed var(--line);background:#f8fafc;color:var(--ink-soft);font-size:0.8rem;font-weight:600;cursor:pointer;">Show ${loc.subRequests.length - 5} more report${loc.subRequests.length - 5 > 1 ? 's' : ''} ▼</button>
+          ` : ''}
+
+          <div style="display:flex; gap:10px; margin-top:16px;">
+            <a href="tel:${loc.subRequests[0].phone}" class="btn btn-outline btn-sm">📞 Call Contact</a>
+          </div>
+        `;
+      }
+
+      centerSelectedMarker();
+    }
+    window.openLocationDetails = openLocationDetails;
+
+    function centerSelectedMarker() {
+      const loc = mapLocations.find(l => l.id === currentSelectedId);
+      if (loc) map.flyTo([loc.lat, loc.lng], 13.5, { duration: 0.8 });
+    }
+    window.centerSelectedMarker = centerSelectedMarker;
+
+    function toggleFilter(checkboxId, pillId) {
+      const checkbox = document.getElementById(checkboxId);
+      checkbox.checked = !checkbox.checked;
+      document.getElementById(pillId).classList.toggle('active', checkbox.checked);
+      renderMapMarkers();
+    }
+    window.toggleFilter = toggleFilter;
+
+    try {
+      onSnapshot(collection(db, "requests"), (snap) => {
+        const liveRequests = snap.docs
+          .filter(d => d.data().status !== 'resolved')
+          .map(d => ({ id: d.id, ...d.data() }));
+        const clustered = clusterRequests(liveRequests);
+        mapLocations = [...clustered, ...campLocations];
+        renderMapMarkers();
+      });
+    } catch (e) {
+      console.warn("Firebase not connected yet — map will only show camps.", e);
+      renderMapMarkers();
+    }
+  </script>
+
+</body>
+</html>

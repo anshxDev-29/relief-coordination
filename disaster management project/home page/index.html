@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relief Connect — Disaster Relief Coordination Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="home-page-body">
+
+  <!-- Permanent Unified Header Navbar -->
+  <header class="navbar">
+    <div class="navbar-inner">
+      <div class="logo">🚨 Relief<span class="dot">Connect</span></div>
+
+      <!-- Desktop & Tablet Navigation Links -->
+      <nav class="nav-links desktop-only">
+        <a href="index.html" class="nav-item active">Home</a>
+        <a href="../dispatch board/dispatch.html" class="nav-item">Dispatch</a>
+        <a href="../live map/map.html" class="nav-item">Live Map</a>
+        <a href="../camps/camps.html" class="nav-item">Camps & Supplies</a>
+        <a href="../About/about.html" class="nav-item">About</a>
+        <a href="../my requests/requests.html" class="nav-item">My Requests</a>
+        <a href="../analytics/analytics.html" class="nav-item">Analytics</a>
+      </nav>
+
+      <!-- Action Items: Visible on both Laptop and Mobile -->
+      <div class="nav-actions" style="position:relative;">
+        <button type="button" id="callHelpBtn" class="btn-register" style="border:none;cursor:pointer;">📞 No Network? Talk to Us</button>
+        <div id="callHelpPanel" style="display:none;position:absolute;top:48px;right:0;background:#fff;border-radius:14px;box-shadow:0 12px 30px -8px rgba(0,0,0,0.25);padding:14px;width:270px;z-index:2000;">
+          <p style="font-size:0.78rem;color:#6b7280;margin:0 0 10px;font-weight:600;">Tap to call directly — no internet needed:</p>
+          <a href="tel:112" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:10px;background:#fee2e2;color:#991b1b;text-decoration:none;font-weight:700;margin-bottom:6px;font-size:0.88rem;">🚨 National Emergency <span>112</span></a>
+          <a href="tel:9711077372" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:10px;background:#fff7ed;color:#9a3412;text-decoration:none;font-weight:700;margin-bottom:6px;font-size:0.88rem;">🪖 NDRF Helpline <span>97110 77372</span></a>
+          <a href="tel:1078" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:10px;background:#eff6ff;color:#1e40af;text-decoration:none;font-weight:700;margin-bottom:6px;font-size:0.88rem;">🏛️ NDMA Disaster Mgmt <span>1078</span></a>
+          <a href="tel:108" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:10px;background:#f0fdf4;color:#166534;text-decoration:none;font-weight:700;margin-bottom:6px;font-size:0.88rem;">🚑 Ambulance <span>108</span></a>
+          <a href="tel:101" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:10px;background:#fef3c7;color:#92400e;text-decoration:none;font-weight:700;font-size:0.88rem;">🔥 Fire Services <span>101</span></a>
+
+          <hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0 10px;">
+          <button type="button" id="findNgoBtn" style="width:100%;padding:10px 12px;border-radius:10px;background:#1e293b;color:#fff;border:none;font-weight:700;font-size:0.85rem;cursor:pointer;">📍 Find Nearest NGO (Works Offline)</button>
+          <div id="nearestNgoResult" style="margin-top:8px;"></div>
+        </div>
+
+        
+        <!-- Apple-Style Morphing Hamburger Button (Phones Only) -->
+        <button class="apple-menu-btn mobile-only" id="appleMenuBtn" onclick="toggleAppleMenu()" aria-label="Toggle Menu">
+          <span class="line line-1"></span>
+          <span class="line line-2"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Apple-Style Fullscreen Overlay Menu (Phones Only) -->
+  <div class="apple-mobile-menu" id="appleMobileMenu">
+    <div class="apple-menu-content">
+      <nav class="apple-links-list">
+        <a href="index.html" class="apple-link" style="--i: 1;" onclick="toggleAppleMenu()">Home</a>
+        <a href="../dispatch board/dispatch.html" class="apple-link" style="--i: 2;">Dispatch Board</a>
+        <a href="../live map/map.html" class="apple-link" style="--i: 3;">Live GIS Map</a>
+        <a href="../camps/camps.html" class="apple-link" style="--i: 4;">Camps & Supplies</a>
+        <a href="../my requests/requests.html" class="apple-link" style="--i: 5;">My Submitted Requests</a>
+        <a href="../analytics/analytics.html" class="apple-link" style="--i: 6;">Analytics</a>
+        <a href="../About/about.html" class="apple-link" style="--i: 7;">About Mission</a>
+        <a href="../request form/request.html" class="apple-link apple-link-accent" style="--i: 8;">📋 Normal Request</a>
+        <a href="Volant/vol.html" class="apple-link" style="--i: 9;">🛡️ Join as Volunteer</a>
+        <a href="ngo/ngo.html" class="apple-link" style="--i: 10;">👥 Register Organization (NGO)</a>
+      </nav>
+    </div>
+  </div>
+
+  <main class="hero-section">
+    <div class="hero-content">
+      <div class="status-badge">
+        <span class="pulse-dot"></span> Emergency Response System
+      </div>
+
+      <h1 class="hero-title">
+        Hello,<br>
+        It’s <span class="highlight-text">Disaster relief coordination portal</span>
+      </h1>
+
+      <p class="hero-subtext">
+        Real-time disaster relief management & automated field dispatch. 
+        Connecting stranded victims directly with rescuers & NGOs.
+      </p>
+
+      <div class="hero-cta-group">
+        <a href="../request form/request.html" class="btn-main-cta btn-emergency">
+          📋 Normal Request
+        </a>
+        <a class="btn-secondary-cta" href="ngo/ngo.html">
+          👥 Register As NGO
+        </a>
+        <a class="btn-secondary-cta" href="Volant/vol.html">
+          🛡️ Volunteer
+        </a>
+      </div>
+
+      <p style="margin-top:16px;font-size:0.85rem;color:#7f1d1d;">
+        Can't wait to fill the form? Call <a href="tel:112" style="color:#dc2626;font-weight:700;text-decoration:none;">112</a> or the <a href="tel:9711077372" style="color:#dc2626;font-weight:700;text-decoration:none;">NDRF Helpline</a> directly.
+      </p>
+    </div>
+
+    <div class="hero-bg-overlay"></div>
+  </main>
+
+  <!-- Quick SOS Floating Button -->
+  <button id="quickSosBtn" style="position:fixed;bottom:26px;right:26px;z-index:1000;width:76px;height:76px;border-radius:50%;background:#dc2626;color:#fff;border:none;font-size:0.78rem;font-weight:800;box-shadow:0 8px 24px rgba(220,38,38,0.5);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;animation:quickSosPulse 1.6s infinite;user-select:none;">
+    <span style="font-size:1.3rem;">⚡</span>
+    HOLD<br>SOS
+  </button>
+  <div id="quickSosProgress" style="position:fixed;bottom:26px;right:26px;z-index:999;width:76px;height:76px;border-radius:50%;pointer-events:none;display:none;"></div>
+
+  <style>
+    @keyframes quickSosPulse {
+      0%, 100% { box-shadow: 0 8px 24px rgba(220,38,38,0.5); }
+      50% { box-shadow: 0 8px 24px rgba(220,38,38,0.85), 0 0 0 10px rgba(220,38,38,0.15); }
+    }
+  </style>
+
+  <!-- First-time Quick SOS setup modal -->
+  <div id="quickSosSetupModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:2000;align-items:center;justify-content:center;padding:20px;">
+    <div style="background:#fff;border-radius:16px;padding:26px;max-width:380px;width:100%;box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+      <h3 style="margin:0 0 4px;font-family:'Fraunces',serif;">Quick SOS — One-Time Setup</h3>
+      <p style="font-size:0.85rem;color:#6b7280;margin:0 0 18px;">Save your name and number once. Every Quick SOS after this will send instantly with zero typing.</p>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.8rem;font-weight:600;display:block;margin-bottom:4px;">Your Name</label>
+        <input type="text" id="qsName" placeholder="e.g. Ramesh Verma" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:0.9rem;">
+      </div>
+      <div style="margin-bottom:18px;">
+        <label style="font-size:0.8rem;font-weight:600;display:block;margin-bottom:4px;">Mobile Number</label>
+        <input type="tel" id="qsPhone" placeholder="10-digit mobile number" maxlength="10" style="width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:0.9rem;">
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="button" onclick="document.getElementById('quickSosSetupModal').style.display='none'" style="flex:1;padding:11px;border-radius:999px;border:1px solid #d1d5db;background:#fff;font-weight:600;cursor:pointer;">Cancel</button>
+        <button type="button" id="qsSaveBtn" style="flex:1;padding:11px;border-radius:999px;border:none;background:#dc2626;color:#fff;font-weight:700;cursor:pointer;">Save & Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/toast.js"></script>
+  <script type="module">
+    import { db, collection, addDoc, serverTimestamp, onSnapshot } from "../js/firebase-init.js";
+    import { findNearestNgo } from "../js/logic.js";
+
+    // ---- Background NGO cache: refreshes silently whenever internet is available ----
+    const NGO_CACHE_KEY = "relief_connect_ngo_cache";
+    try {
+      onSnapshot(collection(db, "ngos"), (snap) => {
+        const list = snap.docs.map(d => {
+          const n = d.data();
+          return { name: n.orgName, phone: n.coordPhone, lat: n.lat, lng: n.lng, address: n.warehouseAddress };
+        });
+        localStorage.setItem(NGO_CACHE_KEY, JSON.stringify({ list, cachedAt: Date.now() }));
+      });
+    } catch (e) { /* offline on load — cached list (if any) still usable */ }
+
+    document.getElementById('findNgoBtn').addEventListener('click', () => {
+      const resultBox = document.getElementById('nearestNgoResult');
+      resultBox.innerHTML = `<p style="font-size:0.78rem;color:#6b7280;">📍 Getting your location…</p>`;
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const cacheRaw = localStorage.getItem(NGO_CACHE_KEY);
+          if (!cacheRaw) {
+            resultBox.innerHTML = `<p style="font-size:0.78rem;color:#991b1b;">No NGO list saved on this device yet. Open this page once with internet, then this will work offline.</p>`;
+            return;
+          }
+          const cache = JSON.parse(cacheRaw);
+          const nearest = findNearestNgo(cache.list, pos.coords.latitude, pos.coords.longitude);
+          if (!nearest) {
+            resultBox.innerHTML = `<p style="font-size:0.78rem;color:#991b1b;">No NGO with location data found nearby.</p>`;
+            return;
+          }
+          const cacheAgeMin = Math.round((Date.now() - cache.cachedAt) / 60000);
+          resultBox.innerHTML = `
+            <div style="background:#f0fdf4;border-radius:10px;padding:10px 12px;">
+              <p style="font-size:0.82rem;font-weight:700;color:#166534;margin:0 0 2px;">${nearest.name}</p>
+              <p style="font-size:0.72rem;color:#4b5563;margin:0 0 6px;">${nearest.distanceKm} km away${nearest.address ? " · " + nearest.address : ""}</p>
+              <a href="tel:${nearest.phone}" style="display:block;text-align:center;background:#16a34a;color:#fff;padding:8px;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.85rem;">📞 Call ${nearest.name}</a>
+              <p style="font-size:0.65rem;color:#9ca3af;margin:6px 0 0;">List last updated ${cacheAgeMin < 1 ? "just now" : cacheAgeMin + " min ago"}</p>
+            </div>`;
+        },
+        (err) => {
+          let msg;
+          if (err.code === 1) {
+            msg = "Location permission was denied. Please allow location access for this site in your browser settings, then try again.";
+          } else if (err.code === 2) {
+            msg = "Couldn't determine your position — on a laptop/PC without internet, location can't be resolved (it needs WiFi-based lookup, unlike a phone's GPS chip). This works reliably on mobile phones even offline.";
+          } else {
+            msg = "Location request timed out. Please try again.";
+          }
+          resultBox.innerHTML = `<p style="font-size:0.78rem;color:#991b1b;">${msg}</p>`;
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    });
+
+    const PROFILE_KEY = "relief_connect_quick_sos_profile";
+    const LAST_SENT_KEY = "relief_connect_quick_sos_last_sent";
+    const TRACK_KEY = "relief_connect_my_tickets";
+    const RATE_LIMIT_MS = 5 * 60 * 1000; // 5 minutes between Quick SOS sends
+
+    const btn = document.getElementById('quickSosBtn');
+    const progressRing = document.getElementById('quickSosProgress');
+    const setupModal = document.getElementById('quickSosSetupModal');
+
+    let holdTimer = null;
+    let holdStart = null;
+    const HOLD_DURATION = 2000;
+
+    function getProfile() {
+      try { return JSON.parse(localStorage.getItem(PROFILE_KEY)); } catch { return null; }
+    }
+
+    function saveProfile(name, phone) {
+      localStorage.setItem(PROFILE_KEY, JSON.stringify({ name, phone }));
+    }
+
+    function saveTicketLocally(id) {
+      const ids = JSON.parse(localStorage.getItem(TRACK_KEY) || "[]");
+      ids.push(id);
+      localStorage.setItem(TRACK_KEY, JSON.stringify(ids));
+    }
+
+    function canSendNow() {
+      const last = parseInt(localStorage.getItem(LAST_SENT_KEY) || "0", 10);
+      return Date.now() - last > RATE_LIMIT_MS;
+    }
+
+    function startHold(e) {
+      e.preventDefault();
+      const profile = getProfile();
+      if (!profile) {
+        setupModal.style.display = 'flex';
+        return;
+      }
+      if (!canSendNow()) {
+        showToast("You already sent a Quick SOS recently. Please wait a few minutes, or use the full form for a new request.", "error", 5000);
+        return;
+      }
+
+      holdStart = Date.now();
+      progressRing.style.display = 'block';
+      progressRing.style.background = `conic-gradient(#16a34a 0deg, transparent 0deg)`;
+      btn.style.transform = 'scale(1.08)';
+
+      holdTimer = setInterval(() => {
+        const elapsed = Date.now() - holdStart;
+        const pct = Math.min(elapsed / HOLD_DURATION, 1);
+        progressRing.style.background = `conic-gradient(#16a34a ${pct * 360}deg, transparent ${pct * 360}deg)`;
+        if (pct >= 1) {
+          clearInterval(holdTimer);
+          fireQuickSos(profile);
+        }
+      }, 30);
+    }
+
+    function cancelHold() {
+      clearInterval(holdTimer);
+      progressRing.style.display = 'none';
+      btn.style.transform = 'scale(1)';
+    }
+
+    async function fireQuickSos(profile) {
+      progressRing.style.display = 'none';
+      btn.style.transform = 'scale(1)';
+      btn.disabled = true;
+      btn.innerHTML = '📍<br>Locating…';
+
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          await submitQuickSos(profile, pos.coords.latitude, pos.coords.longitude);
+        },
+        async () => {
+          showToast("Couldn't get GPS location, sending with name & phone only. Please also call 112 if possible.", "error", 5000);
+          await submitQuickSos(profile, null, null);
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+
+    async function submitQuickSos(profile, lat, lng) {
+      try {
+        const docRef = await addDoc(collection(db, "requests"), {
+          name: profile.name,
+          phone: profile.phone,
+          altPhone: "",
+          headcount: 1,
+          emergencyType: "critical_trapped",
+          location: lat ? "GPS Auto-Detected (Quick SOS)" : "Location unavailable — call-back required",
+          lat, lng,
+          hasVulnerable: false,
+          isTrapped: true,
+          quickSOS: true,
+          verified: false,
+          priorityScore: 90,
+          priorityLabel: "critical",
+          status: "pending",
+          createdAtMs: Date.now(),
+          createdAt: serverTimestamp(),
+        });
+        saveTicketLocally(docRef.id);
+        localStorage.setItem(LAST_SENT_KEY, Date.now().toString());
+        showToast("⚡ Quick SOS sent! Responders have been alerted with your location. They will call you shortly.", "success", 6000);
+      } catch (err) {
+        console.error(err);
+        showToast("Could not send Quick SOS — check your internet connection, or call 112 directly.", "error", 6000);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '⚡<br>HOLD<br>SOS';
+      }
+    }
+
+    btn.addEventListener('mousedown', startHold);
+    btn.addEventListener('touchstart', startHold, { passive: false });
+    btn.addEventListener('mouseup', cancelHold);
+    btn.addEventListener('mouseleave', cancelHold);
+    btn.addEventListener('touchend', cancelHold);
+    btn.addEventListener('touchcancel', cancelHold);
+
+    document.getElementById('qsSaveBtn').addEventListener('click', () => {
+      const name = document.getElementById('qsName').value.trim();
+      const phone = document.getElementById('qsPhone').value.trim();
+      if (!name || phone.length !== 10) {
+        showToast("Please enter your name and a valid 10-digit number.", "error");
+        return;
+      }
+      saveProfile(name, phone);
+      setupModal.style.display = 'none';
+      showToast("Saved! Hold the SOS button again to send your request instantly.", "success");
+    });
+  </script>
+
+  <script>
+    document.getElementById('callHelpBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const panel = document.getElementById('callHelpPanel');
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    });
+    document.addEventListener('click', (e) => {
+      const panel = document.getElementById('callHelpPanel');
+      const btn = document.getElementById('callHelpBtn');
+      if (panel.style.display === 'block' && !panel.contains(e.target) && e.target !== btn) {
+        panel.style.display = 'none';
+      }
+    });
+
+    function toggleAppleMenu() {
+      const menu = document.getElementById('appleMobileMenu');
+      const btn = document.getElementById('appleMenuBtn');
+      
+      const isOpen = menu.classList.contains('open');
+      
+      if (isOpen) {
+        menu.classList.remove('open');
+        btn.classList.remove('active');
+        document.body.style.overflow = '';
+      } else {
+        menu.classList.add('open');
+        btn.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+  </script>
+
+</body>
+</html>

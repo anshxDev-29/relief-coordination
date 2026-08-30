@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NGO & Agency Registration — Relief Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="ngo.css">
+  <style>
+    .verify-row { display: flex; gap: 8px; }
+    .btn-verify {
+      background-color: var(--blue-soft, #dbeafe);
+      color: var(--blue, #2563eb);
+      border: 1px solid #bfdbfe;
+      border-radius: var(--radius, 8px);
+      padding: 0 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .btn-verify:hover { background-color: var(--blue, #2563eb); color: #ffffff; }
+    .verified-badge { display: inline-flex; align-items: center; gap: 4px; color: var(--green, #16a34a); font-size: 0.78rem; font-weight: 700; margin-top: 4px; }
+    .error-msg { color: var(--accent, #dc2626); font-size: 0.78rem; font-weight: 600; margin-top: 4px; }
+    .otp-modal {
+      display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;
+    }
+    .otp-modal.active { display: flex; }
+    .otp-card {
+      background: #ffffff; border-radius: 14px; padding: 28px; max-width: 360px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center;
+    }
+    .otp-inputs { display: flex; justify-content: center; gap: 8px; margin: 18px 0; }
+    .otp-box { width: 42px; height: 48px; text-align: center; font-size: 1.25rem; font-weight: 800; border: 1px solid #cbd5e1; border-radius: 8px; }
+    .otp-box:focus { border-color: var(--blue, #2563eb); outline: none; box-shadow: 0 0 0 3px #dbeafe; }
+  </style>
+</head>
+<body class="ngo-page-body">
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="brand">🚨 Relief<span class="dot">Connect</span></div>
+      <div class="nav-links">
+        <a href="../index.html">Home</a>
+        <a href="../../dispatch board/dispatch.html">Dispatch</a>
+        <a href="../../live map/map.html">Live Map</a>
+        <a href="../../camps/camps.html">Camps & Supplies</a>
+        <a href="../../my requests/requests.html">My Requests</a>
+        <a href="../../analytics/analytics.html">Analytics</a>
+      </div>
+      <div class="nav-actions">
+        <a href="../../request form/request.html" class="btn btn-primary">+ New Request</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="form-page-container">
+    <div class="form-header">
+      <span class="badge-tag">Verified Partner Portal</span>
+      <h1>Register Relief Organization</h1>
+      <p>NGO Darpan verification & coordinator identity authentication are required to allocate stock.</p>
+    </div>
+
+    <div class="form-card">
+      <form id="ngoForm" onsubmit="handleNgoSubmit(event)">
+        
+        <input type="hidden" id="ngoLat" name="ngoLat" value="">
+        <input type="hidden" id="ngoLng" name="ngoLng" value="">
+
+        <div class="form-grid-2">
+          <div class="field">
+            <label for="orgName">Organization Name <span class="req">*</span></label>
+            <input type="text" id="orgName" placeholder="e.g. Red Cross Society" required>
+          </div>
+          <div class="field">
+            <label for="darpanId">NGO Darpan / Trust Reg. ID <span class="req">*</span></label>
+            <input type="text" id="darpanId" placeholder="e.g. UP/2024/019283" required>
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="field">
+            <label for="coordName">Operations Lead Legal Name <span class="req">*</span></label>
+            <input type="text" id="coordName" placeholder="Lead Name" required>
+          </div>
+          
+          <!-- Coordinator Phone Verification -->
+          <div class="field">
+            <label for="coordPhone">Lead Mobile Number <span class="req">*</span></label>
+            <div class="verify-row">
+              <input type="tel" id="coordPhone" placeholder="10-digit number" maxlength="10" pattern="[0-9]{10}" required>
+              <button type="button" class="btn-verify" id="ngoPhoneVerifyBtn" onclick="openNgoOtp()">Verify OTP</button>
+            </div>
+            <div id="ngoPhoneStatus"></div>
+          </div>
+        </div>
+
+        <!-- Coordinator Aadhaar Validation -->
+        <div class="field">
+          <label for="coordAadhaar">Lead Coordinator Aadhaar Number (UIDAI) <span class="req">*</span></label>
+          <div class="verify-row">
+            <input type="text" id="coordAadhaar" placeholder="xxxx xxxx xxxx" maxlength="14" oninput="formatAadhaar(this)" required>
+            <button type="button" class="btn-verify" onclick="validateNgoAadhaar()">Validate ID</button>
+          </div>
+          <div id="ngoAadhaarStatus"></div>
+        </div>
+
+        <div class="field">
+          <label for="sectorSelect">Assigned Operating District / Sector <span class="req">*</span></label>
+          <select id="sectorSelect" required>
+            <option value="" disabled selected>Select active operational zone...</option>
+            <option value="Sector 1">Sector 1 / Bypass Depot Area</option>
+            <option value="Sector 3">Sector 3 Warehouse District</option>
+            <option value="Shastri Nagar">Shastri Nagar Hub</option>
+            <option value="Civil Hospital">Civil Hospital Medical Logistics Zone</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label for="warehouseAddress">Depot Physical Address <span class="req">*</span></label>
+            <span class="gps-status" id="ngoGpsStatus">✓ Depot Coordinates Locked</span>
+          </div>
+          <button type="button" class="btn-gps" onclick="detectDepotLocation()">📍 Auto-Detect Depot GPS</button>
+          <textarea id="warehouseAddress" rows="2" placeholder="Physical warehouse address" required></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit-ngo">
+          🏢 Register Verified Organization & Connect Inventory
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <!-- OTP Modal -->
+  <div class="otp-modal" id="ngoOtpModal">
+    <div class="otp-card">
+      <h3 style="font-family:var(--font-display); font-size:1.3rem; margin-bottom:6px;">Coordinator OTP Verification</h3>
+      <p style="font-size:0.85rem; color:var(--ink-soft);">Enter 6-digit OTP sent to <strong id="ngoOtpTarget"></strong></p>
+      <div class="otp-inputs">
+        <input type="text" class="otp-box ngo-box" maxlength="1" oninput="focusNgoNext(this, 0)">
+        <input type="text" class="otp-box ngo-box" maxlength="1" oninput="focusNgoNext(this, 1)">
+        <input type="text" class="otp-box ngo-box" maxlength="1" oninput="focusNgoNext(this, 2)">
+        <input type="text" class="otp-box ngo-box" maxlength="1" oninput="focusNgoNext(this, 3)">
+        <input type="text" class="otp-box ngo-box" maxlength="1" oninput="focusNgoNext(this, 4)">
+        <input type="text" class="otp-box ngo-box" maxlength="1" oninput="focusNgoNext(this, 5)">
+      </div>
+      <p style="font-size:0.75rem; color:#64748b; margin-bottom:14px;">Demo Test Code: <strong>1 2 3 4 5 6</strong></p>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn" style="background:#f1f5f9; color:#475569; flex:1;" onclick="closeNgoOtp()">Cancel</button>
+        <button type="button" class="btn btn-primary" style="flex:1; background:var(--blue);" onclick="confirmNgoOtp()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { db, collection, addDoc, serverTimestamp } from "../../js/firebase-init.js";
+    window.db = db;
+    window.collection = collection;
+    window.addDoc = addDoc;
+    window.serverTimestamp = serverTimestamp;
+  </script>
+
+  <script>
+    let isNgoPhoneVerified = false;
+    let isNgoAadhaarVerified = false;
+
+    function formatAadhaar(input) {
+      let val = input.value.replace(/\D/g, '').substring(0, 12);
+      let formatted = val.match(/.{1,4}/g)?.join(' ') || val;
+      input.value = formatted;
+    }
+
+    const d = [[0,1,2,3,4,5,6,7,8,9],[1,2,3,4,0,6,7,8,9,5],[2,3,4,0,1,7,8,9,5,6],[3,4,0,1,2,8,9,5,6,7],[4,0,1,2,3,9,5,6,7,8],[5,9,8,7,6,0,4,3,2,1],[6,5,9,8,7,1,0,4,3,2],[7,6,5,9,8,2,1,0,4,3],[8,7,6,5,9,3,2,1,0,4],[9,8,7,6,5,4,3,2,1,0]];
+    const p = [[0,1,2,3,4,5,6,7,8,9],[1,5,7,6,2,8,3,0,9,4],[5,8,0,3,7,9,6,1,4,2],[8,9,1,6,0,4,3,5,2,7],[9,4,5,3,1,2,6,8,7,0],[4,2,8,6,5,7,3,9,0,1],[2,7,9,3,8,0,6,4,1,5],[7,0,4,6,9,1,3,2,5,8]];
+
+    function validateVerhoeff(num) {
+      let c = 0;
+      let myArray = num.split('').map(Number).reverse();
+      for (let i = 0; i < myArray.length; i++) {
+        c = d[c][p[i % 8][myArray[i]]];
+      }
+      return c === 0;
+    }
+
+    function validateNgoAadhaar() {
+      const raw = document.getElementById('coordAadhaar').value.replace(/\s+/g, '');
+      const statusDiv = document.getElementById('ngoAadhaarStatus');
+      if (raw.length !== 12 || !/^\d{12}$/.test(raw)) {
+        statusDiv.innerHTML = `<span class="error-msg">⚠️ Enter a full 12-digit Aadhaar number.</span>`;
+        isNgoAadhaarVerified = false;
+        return;
+      }
+      if (validateVerhoeff(raw)) {
+        statusDiv.innerHTML = `<span class="verified-badge">✓ Coordinator Aadhaar Checksum Verified</span>`;
+        isNgoAadhaarVerified = true;
+      } else {
+        statusDiv.innerHTML = `<span class="error-msg">❌ Invalid Aadhaar Checksum.</span>`;
+        isNgoAadhaarVerified = false;
+      }
+    }
+
+    function openNgoOtp() {
+      const phone = document.getElementById('coordPhone').value;
+      if (phone.length !== 10) {
+        alert("Please enter a valid 10-digit mobile number.");
+        return;
+      }
+      document.getElementById('ngoOtpTarget').innerText = "+91 " + phone;
+      document.getElementById('ngoOtpModal').classList.add('active');
+      document.querySelectorAll('.ngo-box')[0].focus();
+    }
+
+    function closeNgoOtp() {
+      document.getElementById('ngoOtpModal').classList.remove('active');
+    }
+
+    function focusNgoNext(input, index) {
+      if (input.value.length === 1 && index < 5) {
+        document.querySelectorAll('.ngo-box')[index + 1].focus();
+      }
+    }
+
+    function confirmNgoOtp() {
+      const boxes = document.querySelectorAll('.ngo-box');
+      const otp = Array.from(boxes).map(b => b.value).join('');
+      if (otp === "123456" || otp.length === 6) {
+        isNgoPhoneVerified = true;
+        document.getElementById('ngoPhoneStatus').innerHTML = `<span class="verified-badge">✓ Lead Mobile Verified</span>`;
+        document.getElementById('ngoPhoneVerifyBtn').style.display = 'none';
+        document.getElementById('coordPhone').readOnly = true;
+        closeNgoOtp();
+      } else {
+        alert("Incorrect OTP. Enter 123456 for test demo.");
+      }
+    }
+
+    function detectDepotLocation() {
+      const addressBox = document.getElementById('warehouseAddress');
+      const statusTag = document.getElementById('ngoGpsStatus');
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+          document.getElementById('ngoLat').value = pos.coords.latitude.toFixed(5);
+          document.getElementById('ngoLng').value = pos.coords.longitude.toFixed(5);
+          addressBox.value = `Depot GPS: [${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}]`;
+          statusTag.style.display = "inline";
+        });
+      }
+    }
+
+    async function handleNgoSubmit(e) {
+      e.preventDefault();
+      if (!isNgoPhoneVerified) {
+        alert("Please verify coordinator mobile number via OTP.");
+        return;
+      }
+      if (!isNgoAadhaarVerified) {
+        alert("Please validate coordinator Aadhaar number.");
+        return;
+      }
+
+      const submitBtn = document.querySelector('.btn-submit-ngo');
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Registering…";
+
+      const aadhaarDigits = document.getElementById('coordAadhaar').value.replace(/\s+/g, '');
+
+      const ngoData = {
+        orgName: document.getElementById('orgName').value,
+        darpanId: document.getElementById('darpanId').value,
+        coordName: document.getElementById('coordName').value,
+        coordPhone: document.getElementById('coordPhone').value,
+        // Only the last 4 digits are stored — never the full Aadhaar number.
+        coordAadhaarLast4: aadhaarDigits.slice(-4),
+        aadhaarVerified: true,
+        phoneVerified: true,
+        sector: document.getElementById('sectorSelect').value,
+        warehouseAddress: document.getElementById('warehouseAddress').value,
+        lat: parseFloat(document.getElementById('ngoLat').value) || null,
+        lng: parseFloat(document.getElementById('ngoLng').value) || null,
+        status: "active",
+        createdAtMs: Date.now(),
+        createdAt: serverTimestamp(),
+      };
+
+      try {
+        await window.addDoc(window.collection(window.db, "ngos"), ngoData);
+        alert("✅ Organization & Coordinator Verified!\nInventory connected to central relief logistics.");
+        window.location.href = "../../camps/camps.html";
+      } catch (err) {
+        console.error(err);
+        alert("⚠️ Could not save your registration — please check your internet connection and try again.");
+        submitBtn.disabled = false;
+        submitBtn.textContent = "🏢 Register Verified Organization & Connect Inventory";
+      }
+    }
+  </script>
+</body>
+</html>

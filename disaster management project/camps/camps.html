@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Camps & Logistics — Relief Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="camps.css" />
+<style>
+  /* View Switcher Tabs */
+  .tab-switch {
+    display: inline-flex;
+    background: #e2ebe8;
+    padding: 5px;
+    border-radius: 999px;
+    margin-bottom: 24px;
+    border: 1px solid var(--line);
+  }
+  .tab-btn {
+    border: none;
+    background: transparent;
+    padding: 10px 22px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .tab-btn.active {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+
+  /* NGO Resource Card */
+  .ngo-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .ngo-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .ngo-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .ngo-loc {
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .verified-badge {
+    background: #e7f7ee;
+    color: var(--green);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+    border: 1px solid #c3edd3;
+  }
+
+  /* 2x2 Supply Metric Grid inside Card */
+  .supply-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .supply-box {
+    background: #f6f8f7;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .supply-box.highlight {
+    border-color: var(--accent);
+    background: #fff6f5;
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .supply-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .supply-val {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .supply-val small {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    margin-top: 8px;
+  }
+  .coord-info {
+    font-size: 0.84rem;
+    color: var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <div class="brand">🚨 Relief<span class="dot">Connect</span></div>
+    <div class="nav-links">
+      <a href="../home page/index.html">Home</a>
+      <a href="../dispatch board/dispatch.html">Dispatch</a>
+      <a href="../live map/map.html">Live Map</a>
+      <a href="../camps/camps.html" class="active">Camps & Supplies</a>
+      <a href="../my requests/requests.html">My Requests</a>
+      <a href="../analytics/analytics.html">Analytics</a>
+    </div>
+    <div class="nav-actions">
+      <a href="../request form/request.html" class="btn btn-primary">+ New Request</a>
+    </div>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="container">
+    <span class="badge-tag">Logistics & Infrastructure</span>
+    <h2 style="font-family:var(--font-display);margin:10px 0 18px;">Relief Availibility Dashboard</h2>
+
+    <!-- View Switcher -->
+    <div class="tab-switch">
+      <button class="tab-btn active" id="btnResources" onclick="switchView('resources')">📦 NGO Resource Inventory</button>
+      <button class="tab-btn" id="btnCamps" onclick="switchView('camps')">⛺ Relief Camp Directory</button>
+    </div>
+
+    <!-- VIEW 1: NGO RESOURCES WITH SMART SEARCH -->
+    <div id="viewResources">
+      <div class="toolbar" style="margin-bottom: 24px;">
+        <input type="text" id="resourceSearch" placeholder="🔍 Search resource (e.g. 'water', 'food', 'blankets') to auto-sort by highest stock..." style="font-size:0.95rem; padding: 12px 18px;" />
+        <select id="ngoFilter" style="padding: 12px 16px;">
+          <option value="">All Operating Sectors</option>
+          <option value="Sector 1">Sector 1 / Bypass</option>
+          <option value="Sector 3">Sector 3 Depot</option>
+          <option value="Shastri Nagar">Shastri Nagar</option>
+          <option value="Civil Hospital">Civil Hospital Base</option>
+        </select>
+      </div>
+
+      <div id="searchNotice" style="margin-bottom:16px; font-size:0.88rem; color:var(--ink-soft); display:none;"></div>
+
+      <div class="grid-2" id="ngoGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- VIEW 2: RELIEF CAMPS DIRECTORY -->
+    <div id="viewCamps" style="display:none;">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:18px;">
+        <button class="btn btn-primary btn-sm" onclick="openCampModal()">+ Add Relief Camp</button>
+      </div>
+      <div class="grid-2" id="campGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer>Relief Connect — built for faster, more coordinated disaster response.</footer>
+
+<!-- Update Stock Modal -->
+<div class="otp-modal" id="stockModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:2000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:16px;padding:26px;max-width:380px;width:100%;box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+    <h3 style="font-family:var(--font-display);margin:0 0 4px;" id="stockModalTitle">Update Stock</h3>
+    <p style="font-size:0.84rem;color:var(--ink-soft);margin:0 0 18px;">Adjust available supply levels for this organization.</p>
+    <input type="hidden" id="stockNgoId" />
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div class="field"><label>💧 Water (L)</label><input type="number" id="stockWater" min="0" /></div>
+      <div class="field"><label>🍲 Food (Pks)</label><input type="number" id="stockFood" min="0" /></div>
+      <div class="field"><label>🩹 First-Aid (Kits)</label><input type="number" id="stockFirstAid" min="0" /></div>
+      <div class="field"><label>🛏️ Blankets</label><input type="number" id="stockBlankets" min="0" /></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeStockModal()">Cancel</button>
+      <button type="button" class="btn btn-primary" style="flex:1;" onclick="saveStockUpdate()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Camp Modal -->
+<div id="campModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:2000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:16px;padding:26px;max-width:420px;width:100%;box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+    <h3 style="font-family:var(--font-display);margin:0 0 4px;">Register Relief Camp</h3>
+    <p style="font-size:0.84rem;color:var(--ink-soft);margin:0 0 18px;">Add a new active shelter to the live directory.</p>
+    <div class="field"><label>Camp Name</label><input type="text" id="campName" placeholder="e.g. Camp Delta (School Grounds)" /></div>
+    <div class="field"><label>Address</label><input type="text" id="campAddress" placeholder="e.g. Sector 5, Near Water Tank" /></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field"><label>Capacity</label><input type="number" id="campCapacity" min="1" placeholder="500" /></div>
+      <div class="field"><label>Currently Occupied</label><input type="number" id="campOccupied" min="0" placeholder="0" /></div>
+    </div>
+    <div class="field"><label>Managed By</label><input type="text" id="campManager" placeholder="e.g. Red Cross India" /></div>
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <button type="button" class="btn btn-outline" style="flex:1;" onclick="closeCampModal()">Cancel</button>
+      <button type="button" class="btn btn-primary" style="flex:1;" onclick="saveCamp()">Add Camp</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/toast.js"></script>
+<script type="module">
+import { db, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy } from "../js/firebase-init.js";
+
+let ngos = [];
+let camps = [];
+
+const emptySupplies = () => ({
+  water: { label: "Potable Water", stock: 0, unit: "Liters", icon: "💧" },
+  food: { label: "Food Packets", stock: 0, unit: "Pks", icon: "🍲" },
+  firstAid: { label: "First-Aid Kits", stock: 0, unit: "Kits", icon: "🩹" },
+  blankets: { label: "Blankets", stock: 0, unit: "Units", icon: "🛏️" },
+});
+
+// Switch between Resources View and Camps View
+function switchView(view) {
+  document.getElementById("btnResources").classList.toggle("active", view === "resources");
+  document.getElementById("btnCamps").classList.toggle("active", view === "camps");
+  document.getElementById("viewResources").style.display = view === "resources" ? "block" : "none";
+  document.getElementById("viewCamps").style.display = view === "camps" ? "block" : "none";
+}
+window.switchView = switchView;
+
+// Render NGO Resources with smart sort based on search term
+function renderNgos() {
+  const query = document.getElementById("resourceSearch").value.toLowerCase().trim();
+  const sector = document.getElementById("ngoFilter").value;
+  const notice = document.getElementById("searchNotice");
+
+  let list = [...ngos];
+
+  if (sector) {
+    list = list.filter(n => n.sector === sector);
+  }
+
+  let sortKey = null;
+  if (query.includes("water")) sortKey = "water";
+  else if (query.includes("food") || query.includes("ration")) sortKey = "food";
+  else if (query.includes("med") || query.includes("aid") || query.includes("kit")) sortKey = "firstAid";
+  else if (query.includes("blanket") || query.includes("bed")) sortKey = "blankets";
+
+  if (sortKey) {
+    list.sort((a, b) => b.supplies[sortKey].stock - a.supplies[sortKey].stock);
+    notice.style.display = "block";
+    notice.innerHTML = list.length ? `Sorted by highest available <strong>${list[0].supplies[sortKey].label}</strong> first.` : "";
+  } else {
+    notice.style.display = "none";
+    if (query) {
+      list = list.filter(n =>
+        (n.name || "").toLowerCase().includes(query) ||
+        (n.location || "").toLowerCase().includes(query)
+      );
+    }
+  }
+
+  const container = document.getElementById("ngoGrid");
+  if (list.length === 0) {
+    container.innerHTML = `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--ink-soft);padding:40px;">
+      No registered NGOs yet. <a href="../home page/ngo/ngo.html" style="color:var(--accent);font-weight:600;">Register an organization</a> to see it here live.
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = list.map(n => `
+    <div class="ngo-card">
+      <div>
+        <div class="ngo-head">
+          <div>
+            <h3 class="ngo-name">${n.name}</h3>
+            <p class="ngo-loc">📍 ${n.location}</p>
+          </div>
+          <span class="verified-badge">✓ Verified NGO</span>
+        </div>
+
+        <div class="supply-grid">
+          <div class="supply-box ${sortKey === 'water' ? 'highlight' : ''}">
+            <div class="supply-label">💧 Potable Water</div>
+            <div class="supply-val">${n.supplies.water.stock.toLocaleString()} <small>L</small></div>
+          </div>
+          <div class="supply-box ${sortKey === 'food' ? 'highlight' : ''}">
+            <div class="supply-label">🍲 Food Packets</div>
+            <div class="supply-val">${n.supplies.food.stock.toLocaleString()} <small>Pks</small></div>
+          </div>
+          <div class="supply-box ${sortKey === 'firstAid' ? 'highlight' : ''}">
+            <div class="supply-label">🩹 First-Aid Kits</div>
+            <div class="supply-val">${n.supplies.firstAid.stock.toLocaleString()} <small>Kits</small></div>
+          </div>
+          <div class="supply-box ${sortKey === 'blankets' ? 'highlight' : ''}">
+            <div class="supply-label">🛏️ Blankets</div>
+            <div class="supply-val">${n.supplies.blankets.stock.toLocaleString()} <small>Units</small></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <div class="coord-info">Coordinator: <strong>${n.coordinatorPhone || ""}</strong></div>
+        <button class="btn btn-outline btn-sm" onclick="openStockModal('${n.id}')">Update Stock</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+// Render Camps
+function renderCamps() {
+  const statusLabel = { open: "Open", nearlyfull: "Nearly Full", closed: "Closed" };
+  const container = document.getElementById("campGrid");
+
+  if (camps.length === 0) {
+    container.innerHTML = `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--ink-soft);padding:40px;">
+      No relief camps registered yet. Click "+ Add Relief Camp" above to add the first one.
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = camps.map(c => {
+    const pct = Math.round((c.occupied / c.capacity) * 100);
+    const status = pct >= 95 ? "nearlyfull" : pct === 0 ? "closed" : "open";
+    return `
+    <div class="card camp-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h4 style="margin:0;font-size:1.1rem;">${c.name}</h4>
+        <span class="status-pill ${status}">${statusLabel[status]}</span>
+      </div>
+      <p class="addr" style="margin:4px 0 10px;">📍 ${c.address} • Managed by: <strong>${c.managedBy || "Unassigned"}</strong></p>
+      <div class="occ-label"><span>Occupancy</span><span>${pct}% Full</span></div>
+      <div class="bar-track"><div class="bar-fill ${pct > 90 ? 'critical' : pct > 70 ? 'low' : 'optimal'}" style="width:${pct}%"></div></div>
+      <p class="supply-meta" style="margin-top:6px;">${c.occupied} / ${c.capacity} Residents Sheltered</p>
+    </div>`;
+  }).join("");
+}
+
+// -------- Stock Update Modal --------
+function openStockModal(ngoId) {
+  const ngo = ngos.find(n => n.id === ngoId);
+  if (!ngo) return;
+  document.getElementById("stockNgoId").value = ngoId;
+  document.getElementById("stockModalTitle").textContent = `Update Stock — ${ngo.name}`;
+  document.getElementById("stockWater").value = ngo.supplies.water.stock;
+  document.getElementById("stockFood").value = ngo.supplies.food.stock;
+  document.getElementById("stockFirstAid").value = ngo.supplies.firstAid.stock;
+  document.getElementById("stockBlankets").value = ngo.supplies.blankets.stock;
+  document.getElementById("stockModal").style.display = "flex";
+}
+window.openStockModal = openStockModal;
+
+function closeStockModal() {
+  document.getElementById("stockModal").style.display = "none";
+}
+window.closeStockModal = closeStockModal;
+
+async function saveStockUpdate() {
+  const ngoId = document.getElementById("stockNgoId").value;
+  const supplies = {
+    water: { label: "Potable Water", unit: "Liters", icon: "💧", stock: parseInt(document.getElementById("stockWater").value, 10) || 0 },
+    food: { label: "Food Packets", unit: "Pks", icon: "🍲", stock: parseInt(document.getElementById("stockFood").value, 10) || 0 },
+    firstAid: { label: "First-Aid Kits", unit: "Kits", icon: "🩹", stock: parseInt(document.getElementById("stockFirstAid").value, 10) || 0 },
+    blankets: { label: "Blankets", unit: "Units", icon: "🛏️", stock: parseInt(document.getElementById("stockBlankets").value, 10) || 0 },
+  };
+  try {
+    await updateDoc(doc(db, "ngos", ngoId), { supplies });
+    showToast("Stock levels updated.", "success");
+    closeStockModal();
+  } catch (e) {
+    showToast("Could not update stock — check your connection.", "error");
+  }
+}
+window.saveStockUpdate = saveStockUpdate;
+
+// -------- Add Camp Modal --------
+function openCampModal() {
+  document.getElementById("campModal").style.display = "flex";
+}
+window.openCampModal = openCampModal;
+
+function closeCampModal() {
+  document.getElementById("campModal").style.display = "none";
+}
+window.closeCampModal = closeCampModal;
+
+async function saveCamp() {
+  const name = document.getElementById("campName").value.trim();
+  const address = document.getElementById("campAddress").value.trim();
+  const capacity = parseInt(document.getElementById("campCapacity").value, 10);
+  const occupied = parseInt(document.getElementById("campOccupied").value, 10) || 0;
+  const managedBy = document.getElementById("campManager").value.trim();
+
+  if (!name || !address || !capacity) {
+    showToast("Please fill in camp name, address, and capacity.", "error");
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "camps"), {
+      name, address, capacity, occupied, managedBy,
+      createdAtMs: Date.now(),
+    });
+    showToast("Relief camp added to the live directory.", "success");
+    closeCampModal();
+    document.getElementById("campName").value = "";
+    document.getElementById("campAddress").value = "";
+    document.getElementById("campCapacity").value = "";
+    document.getElementById("campOccupied").value = "";
+    document.getElementById("campManager").value = "";
+  } catch (e) {
+    showToast("Could not add camp — check your connection.", "error");
+  }
+}
+window.saveCamp = saveCamp;
+
+document.getElementById("resourceSearch").addEventListener("input", renderNgos);
+document.getElementById("ngoFilter").addEventListener("change", renderNgos);
+
+// -------- Live Firestore listeners --------
+try {
+  onSnapshot(collection(db, "ngos"), (snap) => {
+    ngos = snap.docs.map(d => {
+      const data = d.data();
+      return {
+        id: d.id,
+        name: data.orgName || "Unnamed Organization",
+        location: data.warehouseAddress || "—",
+        sector: data.sector || "",
+        coordinatorPhone: data.coordPhone || "",
+        supplies: data.supplies || emptySupplies(),
+      };
+    });
+    renderNgos();
+  });
+
+  onSnapshot(query(collection(db, "camps"), orderBy("createdAtMs", "desc")), (snap) => {
+    camps = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderCamps();
+  });
+} catch (e) {
+  console.warn("Firebase not connected yet.", e);
+}
+</script>
+
+</body>
+</html>

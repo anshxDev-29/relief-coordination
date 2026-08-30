@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Analytics — Relief Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f7f6;
+    --surface: #ffffff;
+    --ink: #111827;
+    --ink-soft: #4b5563;
+    --line: #e5e7eb;
+    --accent: #dc2626;
+    --accent-soft: #fee2e2;
+    --green: #16a34a;
+    --green-soft: #dcfce7;
+    --amber: #d97706;
+    --amber-soft: #fef3c7;
+    --blue: #2563eb;
+    --blue-soft: #dbeafe;
+    --radius: 10px;
+    --radius-lg: 16px;
+    --shadow: 0 4px 12px rgba(0,0,0,0.05);
+    --font-body: 'Inter', sans-serif;
+    --font-display: 'Fraunces', serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font-body); }
+  .navbar { position: sticky; top: 0; z-index: 50; background: rgba(244,247,246,0.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .navbar-inner { max-width: 1180px; margin: 0 auto; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+  .brand { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 600; font-size: 1.3rem; }
+  .brand .dot { color: var(--accent); }
+  .nav-links { display: flex; gap: 26px; font-size: 0.95rem; font-weight: 500; color: var(--ink-soft); }
+  .nav-links a { text-decoration: none; color: inherit; }
+  .nav-links a.active, .nav-links a:hover { color: var(--ink); }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 999px; font-weight: 600; font-size: 0.92rem; border: 1px solid transparent; cursor: pointer; text-decoration: none; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .container { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+  .section { padding: 40px 0 60px; }
+  .badge-tag { background: var(--accent-soft); color: var(--accent); font-size: 0.78rem; font-weight: 700; padding: 5px 12px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.02em; }
+  h1 { font-family: var(--font-display); font-size: 2rem; margin: 10px 0 6px; }
+  .sub { color: var(--ink-soft); margin-bottom: 30px; }
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 30px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 22px; box-shadow: var(--shadow); }
+  .stat-card .label { font-size: 0.8rem; color: var(--ink-soft); margin-bottom: 6px; }
+  .stat-card .num { font-family: var(--font-display); font-size: 2rem; font-weight: 700; }
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .chart-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow); }
+  .chart-card h3 { font-size: 1rem; margin-bottom: 16px; }
+  .chart-card.full { grid-column: 1 / -1; }
+  canvas { max-height: 280px; }
+  @media (max-width: 860px) {
+    .nav-links { display: none; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .chart-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-inner">
+    <div class="brand">🚨 Relief<span class="dot">Connect</span></div>
+    <div class="nav-links">
+      <a href="../home page/index.html">Home</a>
+      <a href="../dispatch board/dispatch.html">Dispatch</a>
+      <a href="../live map/map.html">Live Map</a>
+      <a href="../camps/camps.html">Camps & Supplies</a>
+      <a href="analytics.html" class="active">Analytics</a>
+    </div>
+    <div class="nav-actions">
+      <a href="../request form/request.html" class="btn btn-primary">+ New Request</a>
+    </div>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="container">
+    <span class="badge-tag">Live Operational Insights</span>
+    <h1>Analytics Snapshot</h1>
+    <p class="sub">Real-time patterns across every emergency request logged in the system.</p>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="label">Total Requests</div><div class="num" id="statTotal">–</div></div>
+      <div class="stat-card"><div class="label">Avg. Time to Dispatch</div><div class="num" id="statAvgTime">–</div></div>
+      <div class="stat-card"><div class="label">Resolution Rate</div><div class="num" id="statResolveRate">–</div></div>
+      <div class="stat-card"><div class="label">Registered NGOs</div><div class="num" id="statNgoCount">–</div></div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>Requests by Emergency Type</h3>
+        <canvas id="typeChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Priority Distribution</h3>
+        <canvas id="priorityChart"></canvas>
+      </div>
+      <div class="chart-card full">
+        <h3>Status Breakdown</h3>
+        <canvas id="statusChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script type="module">
+  import { db, collection, onSnapshot } from "../js/firebase-init.js";
+
+  const emergencyLabels = {
+    critical_trapped: "Trapped / Rising Water",
+    medical_emergency: "Medical Emergency",
+    food_water: "Food & Clean Water",
+    shelter_blankets: "Shelter / Structural",
+  };
+
+  let typeChart, priorityChart, statusChart;
+
+  function buildCharts(requests) {
+    // Requests by type
+    const typeCounts = {};
+    requests.forEach(r => {
+      const label = emergencyLabels[r.emergencyType] || r.emergencyType || "Other";
+      typeCounts[label] = (typeCounts[label] || 0) + 1;
+    });
+
+    // Priority distribution
+    const priorityCounts = { critical: 0, high: 0, medium: 0 };
+    requests.forEach(r => {
+      if (priorityCounts[r.priorityLabel] !== undefined) priorityCounts[r.priorityLabel]++;
+    });
+
+    // Status breakdown
+    const statusCounts = { pending: 0, assigned: 0, resolved: 0 };
+    requests.forEach(r => {
+      if (statusCounts[r.status] !== undefined) statusCounts[r.status]++;
+    });
+
+    const ctxType = document.getElementById('typeChart');
+    const ctxPriority = document.getElementById('priorityChart');
+    const ctxStatus = document.getElementById('statusChart');
+
+    if (typeChart) typeChart.destroy();
+    if (priorityChart) priorityChart.destroy();
+    if (statusChart) statusChart.destroy();
+
+    typeChart = new Chart(ctxType, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(typeCounts),
+        datasets: [{
+          data: Object.values(typeCounts),
+          backgroundColor: '#2563eb',
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+      }
+    });
+
+    priorityChart = new Chart(ctxPriority, {
+      type: 'doughnut',
+      data: {
+        labels: ['Critical', 'High', 'Medium'],
+        datasets: [{
+          data: [priorityCounts.critical, priorityCounts.high, priorityCounts.medium],
+          backgroundColor: ['#dc2626', '#d97706', '#16a34a'],
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    statusChart = new Chart(ctxStatus, {
+      type: 'bar',
+      data: {
+        labels: ['Pending', 'Team Dispatched', 'Resolved'],
+        datasets: [{
+          data: [statusCounts.pending, statusCounts.assigned, statusCounts.resolved],
+          backgroundColor: ['#dc2626', '#d97706', '#16a34a'],
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
+      }
+    });
+
+    // Stat cards
+    document.getElementById('statTotal').textContent = requests.length;
+
+    const resolved = requests.filter(r => r.status === 'resolved');
+    const rate = requests.length ? Math.round((resolved.length / requests.length) * 100) : 0;
+    document.getElementById('statResolveRate').textContent = `${rate}%`;
+
+    const dispatchedOrResolved = requests.filter(r => r.status !== 'pending' && r.createdAtMs);
+    if (dispatchedOrResolved.length > 0) {
+      // We don't store a separate "dispatchedAtMs", so this approximates using time since creation as a proxy.
+      const avgMinutes = Math.round(
+        dispatchedOrResolved.reduce((sum, r) => sum + (Date.now() - r.createdAtMs) / 60000, 0) / dispatchedOrResolved.length
+      );
+      document.getElementById('statAvgTime').textContent = avgMinutes < 60 ? `${avgMinutes}m` : `${Math.round(avgMinutes / 60)}h`;
+    } else {
+      document.getElementById('statAvgTime').textContent = "—";
+    }
+  }
+
+  try {
+    onSnapshot(collection(db, "requests"), (snap) => {
+      const requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      buildCharts(requests);
+    });
+    onSnapshot(collection(db, "ngos"), (snap) => {
+      document.getElementById('statNgoCount').textContent = snap.size;
+    });
+  } catch (e) {
+    console.warn("Firebase not connected yet.", e);
+  }
+</script>
+
+</body>
+</html>

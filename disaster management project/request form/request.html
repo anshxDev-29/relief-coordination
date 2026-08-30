@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit Emergency SOS Request — Relief Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="request.css">
+</head>
+<body class="request-page-body">
+
+  <!-- Unified Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="brand">🚨 Relief<span class="dot">Connect</span></div>
+      <div class="nav-links">
+        <a href="../home page/index.html">Home</a>
+        <a href="../dispatch board/dispatch.html">Dispatch</a>
+        <a href="../live map/map.html">Live Map</a>
+        <a href="../camps/camps.html">Camps & Supplies</a>
+        <a href="../my requests/requests.html">My Requests</a>
+        <a href="../analytics/analytics.html">Analytics</a>
+      </div>
+      <div class="nav-actions">
+        <a href="../request form/request.html" class="btn btn-primary active">+ New Request</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="form-page-container">
+    
+    <div class="form-header">
+      <span class="badge-tag">Zero Signup Required</span>
+      <h1>Emergency Distress Form</h1>
+      <p>Direct priority dispatch to nearest NDRF, SDRF, and verified NGO units.</p>
+    </div>
+
+    <!-- Emergency Call Fallback Banner — distinct from the form below -->
+    <div style="background:#fee2e2;border:2px solid #dc2626;border-radius:14px;padding:18px 22px;margin-bottom:26px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;">
+      <div style="flex:1;min-width:220px;">
+        <p style="margin:0 0 4px;font-weight:700;color:#991b1b;font-size:1rem;">⏱️ Life-threatening and can't wait to fill this form?</p>
+        <p style="margin:0;font-size:0.85rem;color:#7f1d1d;">This form logs your request for tracked dispatch — it can take a minute to fill. For immediate voice help right now, call directly:</p>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="tel:112" style="background:#dc2626;color:#fff;padding:12px 20px;border-radius:999px;font-weight:700;text-decoration:none;font-size:0.92rem;white-space:nowrap;">📞 Call 112</a>
+        <a href="tel:9711077372" style="background:#fff;color:#dc2626;border:2px solid #dc2626;padding:10px 20px;border-radius:999px;font-weight:700;text-decoration:none;font-size:0.92rem;white-space:nowrap;">📞 NDRF Helpline</a>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <form id="sosForm" onsubmit="handleFormSubmit(event)">
+        
+        <!-- Hidden Lat/Lng coordinates for Backend Ingestion -->
+        <input type="hidden" id="geoLat" name="geoLat" value="">
+        <input type="hidden" id="geoLng" name="geoLng" value="">
+
+        <!-- Name and Primary Phone -->
+        <div class="form-grid-2">
+          <div class="field">
+            <label for="name">Caller / Victim Name <span class="req">*</span></label>
+            <input type="text" id="name" placeholder="e.g. Ramesh Verma" required>
+          </div>
+          <div class="field">
+            <label for="phone">Primary Mobile Number <span class="req">*</span></label>
+            <input type="tel" id="phone" placeholder="10-digit mobile number" pattern="[0-9]{10}" required>
+          </div>
+        </div>
+
+        <!-- Headcount and Backup Contact -->
+        <div class="form-grid-2">
+          <div class="field">
+            <label for="headcount">Total People Stranded <span class="req">*</span></label>
+            <input type="number" id="headcount" value="1" min="1" max="100" required>
+          </div>
+          <div class="field">
+            <label for="altPhone">Alternate / Relative Contact</label>
+            <input type="tel" id="altPhone" placeholder="Backup phone (Optional)">
+          </div>
+        </div>
+
+        <!-- Emergency Category -->
+        <div class="field">
+          <label for="emergencyType">Primary Emergency Type <span class="req">*</span></label>
+          <select id="emergencyType" required>
+            <option value="" disabled selected>Select emergency category...</option>
+            <option value="critical_trapped">🚨 Trapped / Rapid Water Inundation / Rescue Needed</option>
+            <option value="medical_emergency">🩹 Severe Medical Emergency / Injury / Labor</option>
+            <option value="food_water">🍲 Food Shortage & Drinking Water Required</option>
+            <option value="shelter_blankets">🛏️ Structural Collapse / Shelter & Blankets Needed</option>
+          </select>
+        </div>
+
+        <!-- Location & GPS Auto-Detection -->
+        <div class="field">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label for="address">Location / Landmark Details <span class="req">*</span></label>
+            <span class="gps-status" id="gpsStatus">✓ GPS Coordinates Locked</span>
+          </div>
+          <button type="button" class="btn-gps" onclick="detectLocation()">
+            📍 Auto-Detect GPS Location
+          </button>
+          <textarea id="address" rows="3" placeholder="Enter landmark or street details (e.g. Sector 4, Block C, Near Substation)" required></textarea>
+        </div>
+
+        <!-- Vulnerability & High-Risk Checklist -->
+        <div class="checklist-box">
+          <div class="checklist-title">High-Risk Conditions (Select all that apply):</div>
+          
+          <label class="check-item">
+            <input type="checkbox" id="checkInfant">
+            <span>Infant (under 2 yrs) or Pregnant individual present</span>
+          </label>
+          
+          <label class="check-item">
+            <input type="checkbox" id="checkElderly">
+            <span>Elderly (60+) or non-ambulatory / wheelchair-bound</span>
+          </label>
+          
+          <label class="check-item">
+            <input type="checkbox" id="checkDebris">
+            <span>Trapped on roof / cut off by deep water</span>
+          </label>
+
+          <label class="check-item">
+            <input type="checkbox" id="checkMedical">
+            <span>Urgent medication needed (Insulin / Dialysis / Oxygen)</span>
+          </label>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn-submit-emergency">
+          🚨 Broadcast Emergency Distress Ticket
+        </button>
+
+      </form>
+    </div>
+
+  </main>
+
+  <footer>Relief Connect — High-Speed Emergency Dispatch & Coordination Gateway</footer>
+
+  <script src="../js/toast.js"></script>
+  <script type="module">
+    import { db, collection, addDoc, serverTimestamp } from "../js/firebase-init.js";
+    import { calculatePriority, priorityLabel } from "../js/logic.js";
+
+    function detectLocation() {
+      const addressBox = document.getElementById('address');
+      const gpsStatus = document.getElementById('gpsStatus');
+
+      if (navigator.geolocation) {
+        addressBox.placeholder = "Detecting high-precision GPS coordinates...";
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude.toFixed(5);
+            const lng = pos.coords.longitude.toFixed(5);
+
+            document.getElementById('geoLat').value = lat;
+            document.getElementById('geoLng').value = lng;
+
+            addressBox.value = `GPS: [${lat}, ${lng}] — Near: `;
+            addressBox.focus();
+            gpsStatus.style.display = "inline";
+          },
+          () => {
+            alert("Could not access device GPS. Please type your location landmark manually.");
+          },
+          { enableHighAccuracy: true, timeout: 8000 }
+        );
+      } else {
+        alert("Geolocation is not supported by your current browser.");
+      }
+    }
+    window.detectLocation = detectLocation;
+
+    // -------- Offline queue (saves locally if there's no connection) --------
+    const QUEUE_KEY = "relief_connect_offline_queue";
+    const TRACK_KEY = "relief_connect_my_tickets";
+
+    function queueLocally(data) {
+      const queue = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
+      queue.push(data);
+      localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+    }
+
+    async function flushQueue() {
+      const queue = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
+      if (queue.length === 0) return;
+      const remaining = [];
+      for (const item of queue) {
+        try {
+          const docRef = await addDoc(collection(db, "requests"), item);
+          saveTicketLocally(docRef.id);
+        } catch (e) {
+          remaining.push(item);
+        }
+      }
+      localStorage.setItem(QUEUE_KEY, JSON.stringify(remaining));
+    }
+    window.addEventListener("online", flushQueue);
+    flushQueue();
+
+    function saveTicketLocally(id) {
+      const ids = JSON.parse(localStorage.getItem(TRACK_KEY) || "[]");
+      ids.push(id);
+      localStorage.setItem(TRACK_KEY, JSON.stringify(ids));
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+
+      const emergencyType = document.getElementById('emergencyType').value;
+      const headcount = parseInt(document.getElementById('headcount').value, 10) || 1;
+      const hasVulnerable =
+        document.getElementById('checkInfant').checked ||
+        document.getElementById('checkElderly').checked ||
+        document.getElementById('checkMedical').checked;
+      const isTrapped = document.getElementById('checkDebris').checked;
+
+      const score = calculatePriority({ emergencyType, hasVulnerable, isTrapped, headcount });
+      const label = priorityLabel(score);
+
+      const requestData = {
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        altPhone: document.getElementById('altPhone').value,
+        headcount,
+        emergencyType,
+        location: document.getElementById('address').value,
+        lat: parseFloat(document.getElementById('geoLat').value) || null,
+        lng: parseFloat(document.getElementById('geoLng').value) || null,
+        hasVulnerable,
+        isTrapped,
+        priorityScore: score,
+        priorityLabel: label,
+        status: "pending",
+        createdAtMs: Date.now(),
+        createdAt: serverTimestamp(),
+      };
+
+      const submitBtn = document.querySelector('.btn-submit-emergency');
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Submitting…";
+
+      try {
+        if (!navigator.onLine) throw new Error("offline");
+        const docRef = await addDoc(collection(db, "requests"), requestData);
+        saveTicketLocally(docRef.id);
+        showToast(`Ticket created — Priority: ${label.toUpperCase()} (${score}/100). Redirecting to live tracking…`, "success", 2500);
+        setTimeout(() => { window.location.href = "../my requests/requests.html"; }, 1800);
+      } catch (err) {
+        queueLocally(requestData);
+        showToast("No connection right now — your request is saved on this device and will send automatically once you're back online.", "error", 6000);
+        submitBtn.disabled = false;
+        submitBtn.textContent = "🚨 Broadcast Emergency Distress Ticket";
+      }
+    }
+    window.handleFormSubmit = handleFormSubmit;
+  </script>
+
+</body>
+</html>
